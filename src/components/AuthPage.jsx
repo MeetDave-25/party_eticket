@@ -59,13 +59,15 @@ export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'att
   return (
     <div className="doodle-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', overflow: 'hidden' }}>
       
-      {/* Back Button */}
-      <button 
-        onClick={() => onNavigate('landing')}
-        style={{ position: 'absolute', top: 20, left: 20, zIndex: 20, background: 'var(--card-bg)', border: '2px solid var(--black-ink)', padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, color: 'var(--black-ink)', boxShadow: '2px 2px 0 var(--black-ink)' }}
-      >
-        <ArrowLeft size={18} /> Back
-      </button>
+      {/* Back Button Container */}
+      <div style={{ width: '100%', maxWidth: 440, display: 'flex', justifyContent: 'flex-start', marginBottom: 20, zIndex: 20, position: 'relative' }}>
+        <button 
+          onClick={() => onNavigate('landing')}
+          style={{ background: 'var(--card-bg)', border: '2px solid var(--black-ink)', padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, color: 'var(--black-ink)', boxShadow: '2px 2px 0 var(--black-ink)' }}
+        >
+          <ArrowLeft size={18} /> Back
+        </button>
+      </div>
 
       {/* ─── Background Scrapbook Decorations (Desktop Only) ─── */}
       <div className="hidden md:block pointer-events-none" style={{ position: 'absolute', inset: 0, zIndex: 0 }}>

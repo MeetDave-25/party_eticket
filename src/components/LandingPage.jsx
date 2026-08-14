@@ -1,11 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { sound } from '../services/audio';
-import { Users, Music, Camera, Gamepad2, Gift, Heart, ArrowRight, Play } from 'lucide-react';
+import { Users, Music, Camera, Gamepad2, Gift, Heart, ArrowRight, Play, Volume2, VolumeX } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function LandingPage({ eventInfo, onNavigate }) {
   // 0: pre-tap, 1: rocket launching on blank screen, 2: revealed landing page
   const [introStage, setIntroStage] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio('/Bgm.mp3');
+    audioRef.current.volume = 0.4;
+    audioRef.current.loop = true;
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  const toggleMusic = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log(e));
+    }
+  };
 
   const triggerFireworks = () => {
     const duration = 4000;
@@ -39,10 +62,9 @@ export default function LandingPage({ eventInfo, onNavigate }) {
     
     // Play the trending music continuously at lower volume
     try {
-      const partyAudio = new Audio('/Bgm.mp3');
-      partyAudio.volume = 0.4;
-      partyAudio.loop = true;
-      partyAudio.play().catch(e => console.log('Audio play failed, maybe missing file', e));
+      if (audioRef.current) {
+        audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log('Audio play failed, maybe missing file', e));
+      }
     } catch(e) {}
 
     // Rocket shoots up for 1.2s on blank screen, then blast and reveal!
@@ -105,8 +127,8 @@ export default function LandingPage({ eventInfo, onNavigate }) {
 
       {/* Main Title Area */}
       <div style={{ textAlign: 'center', position: 'relative', marginBottom: 60, zIndex: 10 }}>
-        {/* Decorative Crown */}
-        <div style={{ position: 'absolute', top: -30, left: '10%', fontSize: 40, transform: 'rotate(-20deg)', color: 'var(--purple-main)' }}>👑</div>
+        {/* Decorative Crown - using Tailwind for responsive positioning */}
+        <div className="absolute -top-12 left-0 sm:left-4 md:left-[10%] text-4xl md:text-5xl transform -rotate-[20deg]" style={{ color: 'var(--purple-main)' }}>👑</div>
         
         <h1 className="marker-font" style={{ fontSize: 'clamp(48px, 10vw, 90px)', color: 'var(--black-ink)', lineHeight: 0.9, textTransform: 'uppercase', marginBottom: 10 }}>
           VASTEGUNA<br/><span style={{ color: 'var(--purple-main)' }}>HUIYAA</span>
@@ -201,6 +223,30 @@ export default function LandingPage({ eventInfo, onNavigate }) {
           <span className="reveal-pulse" style={{ fontSize: 20 }}>🚀</span>
         </div>
       </div>
+
+      {/* Music Toggle Button */}
+      {introStage === 2 && (
+        <button 
+          onClick={toggleMusic}
+          className="btn-secondary"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: 24,
+            width: 50,
+            height: 50,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 0
+          }}
+          title={isPlaying ? "Mute Music" : "Play Music"}
+        >
+          {isPlaying ? <Volume2 size={24} color="var(--purple-main)" /> : <VolumeX size={24} color="var(--purple-main)" />}
+        </button>
+      )}
 
     </div>
     </>
