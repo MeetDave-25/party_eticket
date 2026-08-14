@@ -216,7 +216,10 @@ export default function LandingPage({ eventInfo, onNavigate }) {
 
         <div style={{ flex: 1, minWidth: 200, textAlign: 'center' }}>
           <p className="marker-font" style={{ fontSize: 20, color: 'var(--purple-main)', marginBottom: 6 }}>CONTACT NO: 📞</p>
-          <p style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.3 }}>9714509181<br/>9624487630</p>
+          <div style={{ display: 'inline-block', textAlign: 'left', fontWeight: 700, fontSize: 14 }}>
+            <p style={{ margin: '4px 0' }}>Dhawan Satani: <span style={{ fontSize: 18, fontWeight: 900 }}>9714509181</span></p>
+            <p style={{ margin: '4px 0' }}>Dashrath Jadav: <span style={{ fontSize: 18, fontWeight: 900 }}>9624487630</span></p>
+          </div>
         </div>
 
       </div>
