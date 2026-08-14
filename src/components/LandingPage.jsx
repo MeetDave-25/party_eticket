@@ -4,31 +4,9 @@ import { Users, Music, Camera, Gamepad2, Gift, Heart, ArrowRight, Play, Volume2,
 import confetti from 'canvas-confetti';
 
 export default function LandingPage({ eventInfo, onNavigate }) {
-  // 0: pre-tap, 1: rocket launching on blank screen, 2: revealed landing page
+  // 0: pre-tap, 1: rocket launching on blank screen, 2: video playing, 3: revealed landing page
   const [introStage, setIntroStage] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
-
-  useEffect(() => {
-    audioRef.current = new Audio('/Bgm.mp3');
-    audioRef.current.volume = 0.4;
-    audioRef.current.loop = true;
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, []);
-
-  const toggleMusic = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log(e));
-    }
-  };
+  const videoRef = useRef(null);
 
   const triggerFireworks = () => {
     const duration = 4000;
@@ -60,18 +38,15 @@ export default function LandingPage({ eventInfo, onNavigate }) {
   const handleReveal = () => {
     setIntroStage(1); // Rocket launching on blank screen
     
-    // Play the trending music continuously at lower volume
-    try {
-      if (audioRef.current) {
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log('Audio play failed, maybe missing file', e));
-      }
-    } catch(e) {}
-
-    // Rocket shoots up for 1.2s on blank screen, then blast and reveal!
+    // Rocket shoots up for 1.1s, then blast and show video!
     setTimeout(() => {
-      setIntroStage(2); // Reveal landing page and start fireworks
+      setIntroStage(2); // Reveal video and start fireworks
       triggerFireworks();
     }, 1100);
+  };
+
+  const handleVideoEnded = () => {
+    setIntroStage(3); // Reveal landing page after video
   };
 
   const handleGetStarted = () => {
@@ -90,8 +65,8 @@ export default function LandingPage({ eventInfo, onNavigate }) {
 
   return (
     <>
-      {/* ─── Intro Screen Overlay (Pre-tap and Rocket Launch) ─── */}
-      {introStage < 2 && (
+      {/* ─── Intro Screen Overlay (Pre-tap, Rocket Launch, and Video) ─── */}
+      {introStage < 3 && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#030712', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: introStage === 0 ? 'pointer' : 'default' }} onClick={introStage === 0 ? handleReveal : undefined}>
           
           {introStage === 0 && (
@@ -109,11 +84,31 @@ export default function LandingPage({ eventInfo, onNavigate }) {
             </div>
           )}
 
+          {introStage === 2 && (
+            <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'black' }}>
+              <video 
+                ref={videoRef}
+                src="/intro-video.mp4" 
+                autoPlay 
+                playsInline
+                onEnded={handleVideoEnded}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+              <button 
+                onClick={handleVideoEnded}
+                className="marker-font"
+                style={{ position: 'absolute', bottom: 30, right: 30, padding: '10px 24px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', color: 'white', border: '2px solid rgba(255,255,255,0.5)', borderRadius: 30, cursor: 'pointer', zIndex: 100, fontSize: 18 }}
+              >
+                Skip Video &rarr;
+              </button>
+            </div>
+          )}
+
         </div>
       )}
 
-      {/* ─── Main Landing Page (Reveals at stage 2) ─── */}
-      <div className={`doodle-bg ${introStage === 2 ? 'reveal-animation' : ''}`} style={{ minHeight: '100vh', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: introStage === 2 ? 1 : 0, transition: 'opacity 0.5s' }}>
+      {/* ─── Main Landing Page (Reveals at stage 3) ─── */}
+      <div className={`doodle-bg ${introStage === 3 ? 'reveal-animation' : ''}`} style={{ minHeight: '100vh', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: introStage === 3 ? 1 : 0, transition: 'opacity 0.5s', display: introStage === 3 ? 'flex' : 'none' }}>
       
       {/* Top Banner Quotes */}
       <div style={{ display: 'flex', gap: 20, marginBottom: 40, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -235,30 +230,6 @@ export default function LandingPage({ eventInfo, onNavigate }) {
           <span className="reveal-pulse" style={{ fontSize: 20 }}>🚀</span>
         </div>
       </div>
-
-      {/* Music Toggle Button */}
-      {introStage === 2 && (
-        <button 
-          onClick={toggleMusic}
-          className="btn-secondary"
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            left: 24,
-            width: 50,
-            height: 50,
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: 0
-          }}
-          title={isPlaying ? "Mute Music" : "Play Music"}
-        >
-          {isPlaying ? <Volume2 size={24} color="var(--purple-main)" /> : <VolumeX size={24} color="var(--purple-main)" />}
-        </button>
-      )}
 
     </div>
     </>
