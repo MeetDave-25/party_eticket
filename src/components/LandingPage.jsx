@@ -191,6 +191,18 @@ export default function LandingPage({ eventInfo, onNavigate }) {
         ))}
       </div>
 
+      {/* ─── Sponsor Section ─── */}
+      <div style={{ marginTop: 20, marginBottom: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
+        <div className="paper-card" style={{ padding: '20px 30px', transform: 'rotate(2deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 15, width: '100%', maxWidth: 350 }}>
+          <div className="tape top-center" style={{ width: 80, top: -12 }} />
+          <p className="marker-font" style={{ fontSize: 26, color: 'var(--purple-main)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Sponsored By</p>
+          <div style={{ padding: 10, background: 'white', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: '100%', transform: 'rotate(-1deg)' }}>
+            <img src="/sparsh.jpeg" alt="Sparsh Art Divine Studio" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 2 }} />
+          </div>
+          <h3 style={{ fontSize: 22, fontWeight: 900, textAlign: 'center', color: 'var(--black-ink)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sparsh Art<br/>Divine Studio</h3>
+        </div>
+      </div>
+
       {/* Footer Details */}
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 20, width: '100%', maxWidth: 800, borderTop: '3px dashed var(--black-ink)', paddingTop: 40, paddingBottom: 40 }}>
         
