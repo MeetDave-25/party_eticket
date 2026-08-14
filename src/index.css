@@ -1,0 +1,293 @@
+/* ============================================
+   VASTEGUNA HUIYAA : FRESHERS EDITION
+   Scrapbook / College Party Theme
+============================================ */
+@import "tailwindcss";
+
+:root {
+  /* Brand Palette - College Doodle Vibe */
+  --purple-main: #6B21A8;  /* Deep purple */
+  --purple-light: #9333EA; /* Bright purple */
+  --yellow-marker: #FBBF24;
+  --black-ink: #111827;
+  --paper-bg: #F9F6EE;     /* Softer, creamy paper background */
+  --card-bg: #FEFDFB;      /* Softer white for cards */
+  --text-muted: #4B5563;
+  --border-color: #111827;
+  --dot-color: #E2DDD3;    /* Warmer dots */
+  
+  /* Fonts */
+  --font-display: 'Kalam', cursive;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+:root.dark {
+  --purple-main: #A855F7;
+  --purple-light: #D8B4E2;
+  --yellow-marker: #FDE047;
+  --black-ink: #F9FAFB;
+  --paper-bg: #030712;
+  --card-bg: #111827;
+  --text-muted: #9CA3AF;
+  --border-color: #F9FAFB;
+  --dot-color: #1f2937;
+}
+
+body {
+  background-color: var(--paper-bg);
+  color: var(--black-ink);
+  font-family: var(--font-body);
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+  overflow-x: hidden;
+}
+
+/* ─── Typography ─── */
+h1, h2, h3, .marker-font {
+  font-family: var(--font-display);
+}
+
+/* ─── Paper Cards ─── */
+.paper-card {
+  background: var(--card-bg);
+  border: 2px solid var(--black-ink);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+.paper-card::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 60px;
+  height: 25px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+/* ─── Buttons ─── */
+.btn-primary {
+  background: var(--purple-main);
+  color: #FFFFFF;
+  border: 2px solid var(--black-ink);
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  box-shadow: 4px 4px 0px var(--black-ink);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--black-ink);
+  background: var(--purple-light);
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--black-ink);
+  border: 2px solid var(--black-ink);
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  box-shadow: 4px 4px 0px rgba(107, 33, 168, 0.3);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.btn-secondary:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px rgba(107, 33, 168, 0.3);
+  background: var(--yellow-marker);
+}
+
+.btn-success {
+  background: var(--yellow-marker);
+  color: var(--black-ink);
+  border: 2px solid var(--black-ink);
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  box-shadow: 4px 4px 0px var(--black-ink);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.btn-success:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--black-ink);
+}
+
+/* ─── Inputs ─── */
+.pg-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--card-bg);
+  border: 2px solid var(--black-ink);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--black-ink);
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.05);
+}
+.pg-input:focus {
+  outline: none;
+  border-color: var(--purple-main);
+  box-shadow: 3px 3px 0px var(--purple-main);
+}
+.pg-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pg-select {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--card-bg);
+  border: 2px solid var(--black-ink);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--black-ink);
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.05);
+}
+.pg-select:focus {
+  outline: none;
+  border-color: var(--purple-main);
+}
+
+/* ─── Tables ─── */
+.pg-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+.pg-table th {
+  padding: 16px 20px;
+  font-size: 13px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--purple-main);
+  border-bottom: 2px solid var(--black-ink);
+  background: rgba(107, 33, 168, 0.05);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.pg-table td {
+  padding: 18px 20px;
+  border-bottom: 1px dashed rgba(17, 24, 39, 0.2);
+  vertical-align: middle;
+}
+.pg-table tbody tr:hover td {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+/* ─── Doodle / Scrapbook Accents ─── */
+.doodle-bg {
+  position: relative;
+}
+.doodle-bg::after {
+  content: '';
+  position: absolute;
+  top: -10px; right: -10px;
+  width: 40px; height: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FBBF24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tape {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  backdrop-filter: blur(2px);
+}
+.tape.top-center {
+  width: 100px; height: 30px;
+  top: -15px; left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+/* ─── Scanner Customizations ─── */
+.scanner-corner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-color: var(--purple-main);
+  border-style: solid;
+  z-index: 10;
+}
+.scanner-corner-tl { top: 20px; left: 20px; border-width: 4px 0 0 4px; border-top-left-radius: 8px; }
+.scanner-corner-tr { top: 20px; right: 20px; border-width: 4px 4px 0 0; border-top-right-radius: 8px; }
+.scanner-corner-bl { bottom: 20px; left: 20px; border-width: 0 0 4px 4px; border-bottom-left-radius: 8px; }
+.scanner-corner-br { bottom: 20px; right: 20px; border-width: 0 4px 4px 0; border-bottom-right-radius: 8px; }
+
+.scan-laser {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--yellow-marker);
+  box-shadow: 0 0 15px var(--yellow-marker);
+  animation: scan-anim 2s linear infinite;
+  z-index: 10;
+}
+
+@keyframes scan-anim {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Utility / Status Colors */
+.status-success { color: #10B981; }
+.status-warn { color: #F59E0B; }
+.status-error { color: #EF4444; }
+
+/* ─── Party Reveal Animations ─── */
+.reveal-pulse {
+  animation: pulse-zoom 2s infinite ease-in-out;
+}
+
+@keyframes pulse-zoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.reveal-animation {
+  animation: slide-pop-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slide-pop-in {
+  0% { transform: translateY(50px) scale(0.95); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ─── Rocket Firework Launch ─── */
+.rocket-container {
+  position: fixed;
+  z-index: 999999;
+  left: 50%;
+  bottom: -100px;
+  transform: translateX(-50%);
+  animation: rocket-shoot 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes rocket-shoot {
+  0% { bottom: -100px; transform: translateX(-50%) scale(1); opacity: 1; }
+  90% { bottom: 50%; transform: translateX(-50%) scale(3); opacity: 1; filter: brightness(2); }
+  100% { bottom: 55%; transform: translateX(-50%) scale(4); opacity: 0; }
+}
