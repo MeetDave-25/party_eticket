@@ -19,6 +19,11 @@ export default function AttendeeList({ onTestCode }) {
     setLoading(false);
   };
 
+  const approvePass = async (att) => {
+    sound.playSuccess();
+    await storage.updateAttendee(att.id, { status: 'APPROVED' });
+  };
+
   useEffect(() => {
     load();
     window.addEventListener('passguard_data_change', load);
@@ -89,7 +94,8 @@ export default function AttendeeList({ onTestCode }) {
               <th>Contact</th>
               <th>Pass Type</th>
               <th>Ticket Code</th>
-              <th>Status</th>
+              <th>Pass Status</th>
+              <th>Entry Status</th>
               <th></th>
             </tr>
           </thead>
@@ -129,6 +135,13 @@ export default function AttendeeList({ onTestCode }) {
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: '#4B5563', fontWeight: 700, background: '#F3F4F6', padding: '4px 8px', borderRadius: 6 }}>{att.code}</span>
                   </td>
                   <td>
+                    {att.status === 'PENDING' ? (
+                      <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 100, background: '#FEF3C7', color: '#D97706', border: '2px solid #D97706' }}>PENDING</span>
+                    ) : (
+                      <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 100, background: '#D1FAE5', color: '#059669', border: '2px solid #059669' }}>APPROVED</span>
+                    )}
+                  </td>
+                  <td>
                     {att.checkedIn ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <CheckCircle2 size={18} color="#10B981" />
@@ -140,18 +153,27 @@ export default function AttendeeList({ onTestCode }) {
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <XCircle size={18} color="#9CA3AF" />
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>PENDING</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>NOT IN</span>
                       </div>
                     )}
                   </td>
                   <td>
-                    <button onClick={() => { sound.playClick(); onTestCode(att.code); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'white', border: '2px solid var(--purple-main)', borderRadius: 8, cursor: 'pointer', color: 'var(--purple-main)', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--purple-main)'; e.currentTarget.style.color = 'white'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = 'var(--purple-main)'; }}
-                    >
-                      <Scan size={14} /> Scan
-                    </button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {att.status === 'PENDING' && (
+                        <button onClick={() => approvePass(att)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'var(--purple-main)', border: '2px solid var(--purple-main)', borderRadius: 8, cursor: 'pointer', color: 'white', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)' }}
+                        >
+                          <CheckCircle2 size={14} /> Approve
+                        </button>
+                      )}
+                      <button onClick={() => { sound.playClick(); onTestCode(att.code); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'white', border: '2px solid var(--purple-main)', borderRadius: 8, cursor: 'pointer', color: 'var(--purple-main)', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--purple-main)'; e.currentTarget.style.color = 'white'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = 'var(--purple-main)'; }}
+                      >
+                        <Scan size={14} /> Scan
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

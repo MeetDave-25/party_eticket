@@ -51,6 +51,11 @@ export default function LandingPage({ eventInfo, onNavigate }) {
 
   const handleGetStarted = () => {
     sound.playClick();
+    onNavigate('public_register');
+  };
+
+  const handleLogin = () => {
+    sound.playClick();
     onNavigate('auth');
   };
 
@@ -170,9 +175,14 @@ export default function LandingPage({ eventInfo, onNavigate }) {
         </p>
       </div>
 
-      <button onClick={handleGetStarted} className="btn-primary" style={{ padding: '16px 40px', fontSize: 20, marginBottom: 60 }}>
-        Grab Your E-Pass Now <ArrowRight style={{ display: 'inline', marginLeft: 8 }} />
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 60 }}>
+        <button onClick={handleGetStarted} className="btn-primary" style={{ padding: '16px 40px', fontSize: 20 }}>
+          Grab Your E-Pass Now <ArrowRight style={{ display: 'inline', marginLeft: 8 }} />
+        </button>
+        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '10px 24px', fontSize: 16, background: 'transparent', border: '2px dashed var(--black-ink)', color: 'var(--black-ink)' }}>
+          Already have a pass? Login here
+        </button>
+      </div>
 
       {/* Features Icons */}
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 40, maxWidth: 1000, marginBottom: 60 }}>

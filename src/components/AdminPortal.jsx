@@ -9,8 +9,8 @@ import AttendeeList from './AttendeeList';
 import TicketGenerator from './TicketGenerator';
 import { LayoutDashboard, Users, UserPlus, Scan, FileText, Ticket, LogOut, Menu, X } from 'lucide-react';
 
-export default function AdminPortal({ eventInfo, onLogout }) {
-  const [tab, setTab] = useState('dashboard');
+export default function AdminPortal({ eventInfo, onLogout, initialScanCode, adminRole }) {
+  const [tab, setTab] = useState(adminRole === 'bouncer' ? 'scanner' : 'dashboard');
   const [attendees, setAttendees] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scannerCode, setScannerCode] = useState(null);
@@ -25,7 +25,7 @@ export default function AdminPortal({ eventInfo, onLogout }) {
     return () => window.removeEventListener('passguard_data_change', load);
   }, []);
 
-  const NAV_ITEMS = [
+  const ALL_NAV_ITEMS = [
     { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { id: 'scanner', icon: <Scan size={18} />, label: 'Gate Scanner' },
     { id: 'register', icon: <UserPlus size={18} />, label: 'Issue Passes' },
@@ -33,6 +33,10 @@ export default function AdminPortal({ eventInfo, onLogout }) {
     { id: 'tickets', icon: <Ticket size={18} />, label: 'E-Pass Gallery' },
     { id: 'logs', icon: <FileText size={18} />, label: 'Audit Logs' },
   ];
+
+  const NAV_ITEMS = adminRole === 'bouncer' 
+    ? ALL_NAV_ITEMS.filter(item => item.id === 'scanner')
+    : ALL_NAV_ITEMS;
 
   return (
     <div className="doodle-bg" style={{ display: 'flex', minHeight: '100vh', background: 'var(--paper-bg)' }}>

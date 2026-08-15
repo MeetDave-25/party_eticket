@@ -29,6 +29,11 @@ export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'att
     try {
       const found = await storage.findAttendeeByIdentifier(loginInput.trim());
       if (found) {
+        if (found.status === 'PENDING') {
+          sound.playWarning();
+          setLoginError('Your pass is pending approval from the organizers. We will notify you once confirmed.');
+          return;
+        }
         sound.playSuccess();
         storage.setActiveUser(found);
         onLoginSuccess('user', found);
@@ -50,9 +55,12 @@ export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'att
     if (adminEmail === 'admin@vasteguna.com' && adminPassword === 'admin123') {
       sound.playSuccess();
       onLoginSuccess('admin');
+    } else if (adminEmail === 'bouncer@vasteguna.com' && adminPassword === '1981') {
+      sound.playSuccess();
+      onLoginSuccess('bouncer');
     } else {
       sound.playError();
-      setAdminError('Invalid admin credentials.');
+      setAdminError('Invalid admin or bouncer credentials.');
     }
   };
 
@@ -156,11 +164,11 @@ export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'att
             )}
             <p style={{ fontSize: 14, color: '#4B5563', marginBottom: 16, fontWeight: 500 }}>Organiser login required for gate scanning and analytics.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
-              <input className="pg-input" type="email" required value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="Organiser Email" autoFocus />
+              <input className="pg-input" type="email" required value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="Email (admin@... or bouncer@...)" autoFocus />
               <input className="pg-input" type="password" required value={adminPassword} onChange={e => setAdminPassword(e.target.value)} placeholder="Password" />
             </div>
             <button type="submit" className="btn-primary" style={{ width: '100%', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              Open Gate Scanner <ArrowRight size={18} />
+              Open Dashboard <ArrowRight size={18} />
             </button>
           </form>
         )}

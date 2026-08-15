@@ -28,6 +28,7 @@ function rowToAttendee(row) {
     checkedIn:   row.checked_in,
     checkedInAt: row.checked_in_at ? row.checked_in_at.toISOString() : null,
     checkedInBy: row.checked_in_by || null,
+    status:      row.status,
     createdAt:   row.created_at ? row.created_at.toISOString() : new Date().toISOString(),
   };
 }
@@ -93,7 +94,7 @@ router.post('/', async (req, res) => {
   try {
     const rows = await sql`
       INSERT INTO attendees
-        (id, code, name, email, phone, tier, seat, company, notes)
+        (id, code, name, email, phone, tier, seat, company, notes, status)
       VALUES
         (${id}, ${code}, ${body.name.trim()},
          ${body.email?.trim().toLowerCase() || null},
@@ -101,7 +102,8 @@ router.post('/', async (req, res) => {
          ${body.tier || 'GENERAL'},
          ${body.seat || null},
          ${body.company || null},
-         ${body.notes || null})
+         ${body.notes || null},
+         ${body.status || 'APPROVED'})
       RETURNING *
     `;
     res.status(201).json(rowToAttendee(rows[0]));
@@ -111,7 +113,7 @@ router.post('/', async (req, res) => {
       const newCode = generateCode(body.tier || 'GEN');
       const retry = await sql`
         INSERT INTO attendees
-          (id, code, name, email, phone, tier, seat, company, notes)
+          (id, code, name, email, phone, tier, seat, company, notes, status)
         VALUES
           (${id}, ${newCode}, ${body.name.trim()},
            ${body.email?.trim().toLowerCase() || null},
@@ -119,7 +121,8 @@ router.post('/', async (req, res) => {
            ${body.tier || 'GENERAL'},
            ${body.seat || null},
            ${body.company || null},
-           ${body.notes || null})
+           ${body.notes || null},
+           ${body.status || 'APPROVED'})
         RETURNING *
       `;
       return res.status(201).json(rowToAttendee(retry[0]));
@@ -142,6 +145,7 @@ router.put('/:id', async (req, res) => {
         seat          = COALESCE(${body.seat || null},          seat),
         company       = COALESCE(${body.company || null},       company),
         notes         = COALESCE(${body.notes || null},         notes),
+        status        = COALESCE(${body.status || null},        status),
         checked_in    = COALESCE(${body.checkedIn ?? null},     checked_in),
         checked_in_at = COALESCE(${body.checkedInAt ? new Date(body.checkedInAt) : null}, checked_in_at),
         checked_in_by = COALESCE(${body.checkedInBy || null},  checked_in_by)

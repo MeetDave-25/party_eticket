@@ -167,6 +167,16 @@ export default function Registration({ eventInfo, onCreatedAttendee }) {
                     </select>
                   </div>
                 </div>
+                
+                <div style={{ background: '#EFF6FF', border: '2px dashed #3B82F6', borderRadius: 8, padding: 16, display: 'flex', gap: 20, alignItems: 'center' }}>
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=cyash4867@oksbi&pn=Yash%20Chaudhari&am=350&cu=INR" alt="UPI QR Code" style={{ borderRadius: 8, width: 100, height: 100 }} />
+                  <div>
+                    <p style={{ fontWeight: 800, color: '#1D4ED8', fontSize: 16, marginBottom: 4 }}>Pass Price: ₹350/-</p>
+                    <p style={{ fontSize: 14, color: '#1E3A8A', marginBottom: 8, fontWeight: 500 }}>Scan with GPay or any UPI app to pay.</p>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 800, background: 'white', padding: '6px 10px', border: '1px solid #BFDBFE', borderRadius: 6, display: 'inline-block', margin: 0 }}>UPI ID: cyash4867@oksbi</p>
+                  </div>
+                </div>
+
                 <button type="submit" disabled={saving} className="btn-success" style={{ padding: '16px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10 }}>
                   {saving ? <><Loader size={20} className="animate-spin" /> Saving...</> : <><UserPlus size={20} /> Generate E-Pass</>}
                 </button>

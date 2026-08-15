@@ -6,6 +6,7 @@ import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import UserPortal from './components/UserPortal';
 import AdminPortal from './components/AdminPortal';
+import PublicRegistration from './components/PublicRegistration';
 
 const EVENT_INFO = {
   name: 'VASTEGUNA HUIYAA',
@@ -19,6 +20,7 @@ const EVENT_INFO = {
 
 export default function App() {
   const [page, setPage] = useState('landing'); // 'landing' | 'auth' | 'user' | 'admin'
+  const [adminRole, setAdminRole] = useState(null); // 'admin' | 'bouncer'
   const [authOpts, setAuthOpts] = useState({});
   const [scanCode, setScanCode] = useState(null);
   const [isDark, setIsDark] = useState(false);
@@ -61,7 +63,8 @@ export default function App() {
   };
 
   const handleLoginSuccess = (role, user = null) => {
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'bouncer') {
+      setAdminRole(role);
       setPage('admin');
     } else {
       if (user) storage.setActiveUser(user);
@@ -72,6 +75,7 @@ export default function App() {
 
   const handleLogout = () => {
     storage.clearActiveUser();
+    setAdminRole(null);
     setPage('landing');
     setScanCode(null);
     window.scrollTo(0, 0);
@@ -97,6 +101,12 @@ export default function App() {
         />
       )}
 
+      {page === 'public_register' && (
+        <PublicRegistration
+          onNavigate={navigate}
+        />
+      )}
+
       {page === 'auth' && (
         <AuthPage
           onNavigate={navigate}
@@ -119,6 +129,7 @@ export default function App() {
           onLogout={handleLogout}
           onSwitchToAttendee={switchToUser}
           initialScanCode={scanCode}
+          adminRole={adminRole}
         />
       )}
 
