@@ -4,7 +4,7 @@ import { sound } from '../services/audio';
 import {
   Users, CheckCircle2, XCircle, Scan, Search,
   Download, Activity, Loader, Trash2, Check, X, Clock, AlertTriangle,
-  Image as ImageIcon, ExternalLink, Eye
+  Image as ImageIcon, ExternalLink, Eye, RefreshCw
 } from 'lucide-react';
 
 export default function AttendeeList({ onTestCode }) {
@@ -12,14 +12,25 @@ export default function AttendeeList({ onTestCode }) {
   const [search, setSearch] = useState('');
   const [filterTab, setFilterTab] = useState('ALL'); // 'ALL' | 'PENDING' | 'APPROVED' | 'CHECKED_IN'
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [copiedUtrId, setCopiedUtrId] = useState(null);
   const [selectedProof, setSelectedProof] = useState(null); // Attendee object for Receipt Modal
 
-  const load = async () => {
-    const list = await storage.getAttendees();
-    setAttendees(list);
-    setLoading(false);
+  const load = async (isManual = false) => {
+    if (isManual) setRefreshing(true);
+    try {
+      setFetchError('');
+      const list = await storage.getAttendees();
+      setAttendees(list);
+    } catch (err) {
+      console.error('Failed to load attendees:', err);
+      setFetchError(err.message || 'Failed to connect to database');
+    } finally {
+      setLoading(false);
+      if (isManual) setRefreshing(false);
+    }
   };
 
   const copyUtr = (id, utr) => {
@@ -38,6 +49,7 @@ export default function AttendeeList({ onTestCode }) {
       if (selectedProof?.id === att.id) {
         setSelectedProof(null);
       }
+      await load();
     } catch (err) {
       alert(`Failed to approve: ${err.message}`);
     } finally {
@@ -54,6 +66,7 @@ export default function AttendeeList({ onTestCode }) {
       if (selectedProof?.id === att.id) {
         setSelectedProof(null);
       }
+      await load();
     } catch (err) {
       alert(`Failed to delete: ${err.message}`);
     } finally {
@@ -63,8 +76,12 @@ export default function AttendeeList({ onTestCode }) {
 
   useEffect(() => {
     load();
+    const interval = setInterval(() => load(), 4000);
     window.addEventListener('passguard_data_change', load);
-    return () => window.removeEventListener('passguard_data_change', load);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('passguard_data_change', load);
+    };
   }, []);
 
   const pendingCount = attendees.filter(a => a.status === 'PENDING').length;
@@ -125,10 +142,45 @@ export default function AttendeeList({ onTestCode }) {
             </span>
           </h1>
         </div>
-        <button onClick={exportCSV} className="btn-secondary" style={{ padding: '10px 20px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Download size={17} /> Export CSV
-        </button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button 
+            onClick={() => { sound.playClick(); load(true); }} 
+            disabled={refreshing}
+            className="btn-secondary" 
+            style={{ padding: '10px 16px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
+            title="Refresh list from database"
+          >
+            <RefreshCw size={17} className={refreshing ? 'animate-spin' : ''} /> 
+            <span>{refreshing ? 'Refreshing…' : 'Refresh'}</span>
+          </button>
+          <button onClick={exportCSV} className="btn-secondary" style={{ padding: '10px 20px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Download size={17} /> Export CSV
+          </button>
+        </div>
       </div>
+
+      {/* Database Connection Error Banner */}
+      {fetchError && (
+        <div style={{
+          background: '#FEE2E2', border: '2px solid #EF4444', borderRadius: 12, padding: '16px 20px',
+          marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AlertTriangle size={20} color="#B91C1C" />
+            <div>
+              <p style={{ fontWeight: 800, color: '#B91C1C', margin: 0, fontSize: 14 }}>Database Connection Error</p>
+              <p style={{ fontSize: 13, color: '#7F1D1D', margin: '2px 0 0' }}>{fetchError}</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => load(true)} 
+            className="btn-primary" 
+            style={{ padding: '6px 14px', fontSize: 12 }}
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
 
       {/* ─── Pending Approval Alert Banner (If Any) ─── */}
       {pendingCount > 0 && filterTab !== 'PENDING' && (

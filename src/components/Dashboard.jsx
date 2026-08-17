@@ -33,8 +33,12 @@ export default function Dashboard({ onNavigate, onTestCode }) {
 
   useEffect(() => {
     load();
+    const interval = setInterval(load, 4000);
     window.addEventListener('passguard_data_change', load);
-    return () => window.removeEventListener('passguard_data_change', load);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('passguard_data_change', load);
+    };
   }, []);
 
   const ACTIONS = [

@@ -26,15 +26,27 @@ export default function AdminPortal({ eventInfo, onLogout, initialScanCode, admi
       setAttendees(list);
     };
     load();
+    const interval = setInterval(load, 4000);
     window.addEventListener('passguard_data_change', load);
-    return () => window.removeEventListener('passguard_data_change', load);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('passguard_data_change', load);
+    };
   }, []);
+
+  const pendingApprovalsCount = attendees.filter(a => a.status === 'PENDING').length;
 
   const ALL_NAV_ITEMS = [
     { id: 'dashboard', icon: <LayoutDashboard size={19} />, label: 'Dashboard' },
     { id: 'scanner', icon: <Scan size={19} />, label: 'Gate Scanner' },
     { id: 'register', icon: <UserPlus size={19} />, label: 'Issue Passes' },
-    { id: 'attendees', icon: <Users size={19} />, label: 'Guest List', badge: attendees.length },
+    { 
+      id: 'attendees', 
+      icon: <Users size={19} />, 
+      label: 'Guest List', 
+      badge: pendingApprovalsCount > 0 ? `${pendingApprovalsCount} Pending` : attendees.length,
+      highlight: pendingApprovalsCount > 0
+    },
     { id: 'tickets', icon: <Ticket size={19} />, label: 'E-Pass Gallery' },
     { id: 'logs', icon: <FileText size={19} />, label: 'Audit Logs' },
   ];
