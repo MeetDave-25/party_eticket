@@ -4,7 +4,8 @@
  * The Vite proxy forwards /api/* → http://localhost:3001/api/*
  */
 
-const BASE = '/api';
+const API_URL = import.meta.env.VITE_API_URL || '';
+const BASE = API_URL ? `${API_URL.replace(/\/$/, '')}/api` : '/api';
 
 async function request(method, path, body = null) {
   const opts = {
@@ -13,12 +14,38 @@ async function request(method, path, body = null) {
   };
   if (body !== null) opts.body = JSON.stringify(body);
 
-  const res = await fetch(`${BASE}${path}`, opts);
-  const data = await res.json();
+  let res;
+  try {
+    res = await fetch(`${BASE}${path}`, opts);
+  } catch (err) {
+    throw new Error(`Cannot connect to backend server (${err.message}). Ensure the API server is running on port 3001.`);
+  }
+
+  const contentType = res.headers.get('content-type') || '';
+  let data = null;
+
+  if (contentType.includes('application/json')) {
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+  }
 
   if (!res.ok) {
-    throw new Error(data?.error || `HTTP ${res.status}`);
+    if (data && data.error) {
+      throw new Error(data.error);
+    }
+    if (res.status === 404 || res.status === 502 || res.status === 503 || res.status === 504) {
+      throw new Error(`API server is unreachable (HTTP ${res.status}). Make sure the backend is running with 'npm run dev' or 'npm run dev:all'.`);
+    }
+    throw new Error(`Server returned HTTP ${res.status}`);
   }
+
+  if (data === null) {
+    throw new Error('Received unexpected non-JSON response from server. Make sure the backend server is running on port 3001.');
+  }
+
   return data;
 }
 

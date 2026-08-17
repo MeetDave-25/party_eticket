@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ─── Middleware ─────────────────────────────────────────────────
-app.use(cors({ origin: ['http://localhost:5173', 'http://127.0.0.1:5173'] }));
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // ─── Request logger (dev) ───────────────────────────────────────
@@ -46,6 +46,18 @@ app.use('/api/seed',      seedRouter);
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ─── Serve Frontend in Production ──────────────────────────────
+const distPath = join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// Fallback for SPA routing (any non-API route goes to index.html)
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(join(distPath, 'index.html'), (err) => {
+    if (err) next();
+  });
 });
 
 // ─── Start ─────────────────────────────────────────────────────

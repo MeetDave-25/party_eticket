@@ -4,10 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -n \"API,UI\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:ui\"",
+    "dev:ui": "vite",
     "dev:server": "nodemon --watch server server/index.js",
-    "dev:all": "concurrently -n \"API,UI\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev\"",
+    "dev:all": "concurrently -n \"API,UI\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:ui\"",
     "build": "vite build",
+    "start": "node server/index.js",
     "lint": "oxlint",
     "preview": "vite preview"
   },
