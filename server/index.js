@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import sql from './db.js';
@@ -55,9 +55,21 @@ app.use(express.static(distPath));
 // Fallback for SPA routing (any non-API GET route serves index.html)
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/api')) {
-    return res.sendFile(join(distPath, 'index.html'), (err) => {
-      if (err) next();
-    });
+    const indexPath = join(distPath, 'index.html');
+    if (existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head><title>PassGuard API</title></head>
+        <body style="font-family:sans-serif;text-align:center;padding:50px;background:#0d1117;color:#c9d1d9;">
+          <h1 style="color:#58a6ff;">🚀 PassGuard Backend API is Live</h1>
+          <p>This server handles backend API endpoints (e.g. <code>/api/health</code>, <code>/api/attendees</code>).</p>
+          <p>If you intended to host the frontend UI here, ensure your build command runs <code>npm run build</code>.</p>
+        </body>
+      </html>
+    `);
   }
   next();
 });
