@@ -52,12 +52,14 @@ app.get('/api/health', (_req, res) => {
 const distPath = join(__dirname, '../dist');
 app.use(express.static(distPath));
 
-// Fallback for SPA routing (any non-API route goes to index.html)
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(join(distPath, 'index.html'), (err) => {
-    if (err) next();
-  });
+// Fallback for SPA routing (any non-API GET route serves index.html)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    return res.sendFile(join(distPath, 'index.html'), (err) => {
+      if (err) next();
+    });
+  }
+  next();
 });
 
 // ─── Start ─────────────────────────────────────────────────────
