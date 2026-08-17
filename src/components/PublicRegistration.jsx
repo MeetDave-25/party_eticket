@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { storage, PASS_TIERS } from '../services/storage';
 import { sound } from '../services/audio';
-import { UserPlus, CheckCircle2, AlertCircle, Loader, ArrowLeft, ExternalLink, Copy, Check } from 'lucide-react';
+import { UserPlus, CheckCircle2, AlertCircle, Loader, ArrowLeft, ExternalLink, Copy, Check, QrCode as QrIcon } from 'lucide-react';
+import QRCode from 'qrcode';
 import qrImage from '../assets/qr.jpeg';
 
 export default function PublicRegistration({ onNavigate, onBack }) {
@@ -10,11 +11,30 @@ export default function PublicRegistration({ onNavigate, onBack }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [qrMode, setQrMode] = useState('scannable'); // 'scannable' | 'gpay'
+  const [dynamicQr, setDynamicQr] = useState('');
 
   const UPI_ID = 'dabhiprit8770@oksbi';
   const PAYEE_NAME = 'Prit Dabhi';
   const AMOUNT = 350;
+  
+  // Standard NPCI compliant UPI string with amount pre-filled
   const UPI_URL = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${AMOUNT}&cu=INR&tn=FresherPartyPass`;
+
+  // Generate crisp standard NPCI UPI QR code on mount
+  useEffect(() => {
+    QRCode.toDataURL(UPI_URL, {
+      width: 400,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    })
+    .then(url => setDynamicQr(url))
+    .catch(err => console.error('QR generation error:', err));
+  }, []);
 
   const copyUpiId = () => {
     navigator.clipboard.writeText(UPI_ID);
@@ -141,7 +161,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
 
               {/* ─── SECTION 2: Payment Details with Direct UPI & QR ─── */}
               <div style={{ background: '#F8FAFC', border: '2px solid var(--black-ink)', borderRadius: 12, padding: '20px', boxShadow: '3px 3px 0 var(--black-ink)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                   <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--black-ink)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     💳 Step 1: Scan & Pay ₹350
                   </span>
@@ -150,14 +170,14 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                   </span>
                 </div>
 
-                {/* Direct UPI Trigger Button for Mobile */}
+                {/* Direct 1-Click UPI Payment Button for Mobile */}
                 <a 
                   href={UPI_URL}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                     background: 'linear-gradient(135deg, #10B981, #059669)',
                     color: 'white', border: '2px solid var(--black-ink)', borderRadius: 8,
-                    padding: '12px 16px', fontWeight: 800, fontSize: 14, textDecoration: 'none',
+                    padding: '13px 16px', fontWeight: 800, fontSize: 14.5, textDecoration: 'none',
                     boxShadow: '2px 2px 0 var(--black-ink)', marginBottom: 16
                   }}
                 >
@@ -165,19 +185,69 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                   <span>⚡ Pay ₹350 via Google Pay / Any UPI App</span>
                 </a>
 
-                {/* QR Code and UPI ID */}
-                <div style={{ display: 'flex', gap: 16, alignItems: 'center', background: 'white', border: '1.5px dashed #CBD5E1', borderRadius: 8, padding: 12 }}>
-                  <img 
-                    src={qrImage} 
-                    alt="Google Pay QR Code - Prit Dabhi" 
-                    style={{ borderRadius: 8, width: 110, height: 110, objectFit: 'contain', border: '1px solid #E2E8F0', flexShrink: 0, background: '#F8FAFC' }} 
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                {/* QR Code Switcher Tabs (Universal Scannable QR vs GPay Poster) */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => { sound.playClick(); setQrMode('scannable'); }}
+                    style={{
+                      padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 6,
+                      border: '1.5px solid var(--black-ink)',
+                      background: qrMode === 'scannable' ? 'var(--purple-main)' : 'white',
+                      color: qrMode === 'scannable' ? 'white' : 'var(--black-ink)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ⚡ Fast Scan QR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { sound.playClick(); setQrMode('gpay'); }}
+                    style={{
+                      padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 6,
+                      border: '1.5px solid var(--black-ink)',
+                      background: qrMode === 'gpay' ? 'var(--purple-main)' : 'white',
+                      color: qrMode === 'gpay' ? 'white' : 'var(--black-ink)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🖼️ GPay Card View
+                  </button>
+                </div>
+
+                {/* QR Display Area */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'white', border: '1.5px dashed #CBD5E1', borderRadius: 10, padding: 16 }}>
+                  {qrMode === 'scannable' ? (
+                    dynamicQr ? (
+                      <div style={{ textAlign: 'center' }}>
+                        <img 
+                          src={dynamicQr} 
+                          alt="Payable UPI QR Code" 
+                          style={{ width: 170, height: 170, borderRadius: 8, border: '1px solid #E2E8F0', display: 'block', margin: '0 auto 8px' }} 
+                        />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', background: '#D1FAE5', padding: '3px 8px', borderRadius: 4 }}>
+                          ✓ Standard NPCI UPI — Scans with all apps
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ height: 170, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Loader className="animate-spin" size={24} />
+                      </div>
+                    )
+                  ) : (
+                    <img 
+                      src={qrImage} 
+                      alt="Google Pay QR Code" 
+                      style={{ width: 170, maxHeight: 220, objectFit: 'contain', borderRadius: 8, border: '1px solid #E2E8F0' }} 
+                    />
+                  )}
+
+                  <div style={{ marginTop: 12, textAlign: 'center', width: '100%' }}>
                     <p style={{ fontSize: 14, fontWeight: 800, color: '#1E293B', margin: '0 0 2px' }}>{PAYEE_NAME}</p>
-                    <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 8px' }}>Google Pay / Any UPI App</p>
+                    <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 8px' }}>Google Pay / PhonePe / Paytm / BHIM</p>
                     
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 6, padding: '4px 8px' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 800, color: '#0F172A' }}>{UPI_ID}</span>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 6, padding: '4px 10px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, fontWeight: 800, color: '#0F172A' }}>{UPI_ID}</span>
                       <button 
                         type="button" 
                         onClick={copyUpiId}
