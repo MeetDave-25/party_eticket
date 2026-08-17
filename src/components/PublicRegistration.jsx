@@ -3,7 +3,7 @@ import { storage, PASS_TIERS } from '../services/storage';
 import { sound } from '../services/audio';
 import { UserPlus, CheckCircle2, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
 
-export default function PublicRegistration({ onNavigate }) {
+export default function PublicRegistration({ onNavigate, onBack }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', tier: 'GENERAL' });
   const [submitted, setSubmitted] = useState(null);
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ export default function PublicRegistration({ onNavigate }) {
       sound.playSuccess();
       setSubmitted(att);
     } catch (err) {
-      setError(`Failed to save: ${err.message}`);
+      setError(err.message.replace(/^Failed to save:\s*/, ''));
       sound.playWarning();
     } finally {
       setSaving(false);
@@ -34,7 +34,7 @@ export default function PublicRegistration({ onNavigate }) {
       {/* Back Button */}
       <div style={{ width: '100%', maxWidth: 500, display: 'flex', justifyContent: 'flex-start', marginBottom: 20, zIndex: 20, position: 'relative' }}>
         <button 
-          onClick={() => onNavigate('landing')}
+          onClick={() => onBack ? onBack() : onNavigate('landing')}
           style={{ background: 'var(--card-bg)', border: '2px solid var(--black-ink)', padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, color: 'var(--black-ink)', boxShadow: '2px 2px 0 var(--black-ink)' }}
         >
           <ArrowLeft size={18} /> Back
@@ -72,9 +72,20 @@ export default function PublicRegistration({ onNavigate }) {
             <div className="tape top-center" style={{ width: 80, transform: 'rotate(-2deg)' }} />
             
             {error && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#FEE2E2', border: '2px dashed #EF4444', borderRadius: 8, padding: '12px 16px', marginBottom: 24, color: '#B91C1C' }}>
-                <AlertCircle size={18} />
-                <span style={{ fontSize: 14, fontWeight: 600 }}>{error}</span>
+              <div style={{ background: '#FEE2E2', border: '2px dashed #EF4444', borderRadius: 8, padding: '14px 16px', marginBottom: 24, color: '#B91C1C' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: 13.5, fontWeight: 700 }}>{error}</span>
+                </div>
+                {error.toLowerCase().includes('already registered') && (
+                  <button 
+                    onClick={() => onNavigate('auth')} 
+                    className="btn-primary" 
+                    style={{ marginTop: 12, padding: '8px 16px', fontSize: 13, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    Go to Login Page →
+                  </button>
+                )}
               </div>
             )}
             

@@ -85,20 +85,51 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const body = req.body;
   if (!body.name?.trim()) {
-    return res.status(400).json({ error: 'name is required' });
+    return res.status(400).json({ error: 'Name is required' });
   }
 
-  const id   = body.id   || generateId();
-  const code = (body.code || generateCode(body.tier || 'GEN')).toUpperCase();
+  const cleanEmail = body.email?.trim().toLowerCase();
+  const cleanPhone = body.phone?.trim();
 
   try {
+    // 1. Enforce only 1 registration per email
+    if (cleanEmail) {
+      const existingEmail = await sql`
+        SELECT id, name, status, code FROM attendees
+        WHERE LOWER(email) = ${cleanEmail}
+        LIMIT 1
+      `;
+      if (existingEmail.length > 0) {
+        return res.status(409).json({ 
+          error: 'This email is already registered! Please log in to view or check your ticket status.' 
+        });
+      }
+    }
+
+    // 2. Enforce only 1 registration per phone
+    if (cleanPhone && cleanPhone.length >= 7) {
+      const existingPhone = await sql`
+        SELECT id, name, status, code FROM attendees
+        WHERE phone = ${cleanPhone} OR REPLACE(phone, '-', '') = REPLACE(${cleanPhone}, '-', '')
+        LIMIT 1
+      `;
+      if (existingPhone.length > 0) {
+        return res.status(409).json({ 
+          error: 'This phone number is already registered! Please log in to view your ticket.' 
+        });
+      }
+    }
+
+    const id   = body.id   || generateId();
+    const code = (body.code || generateCode(body.tier || 'GEN')).toUpperCase();
+
     const rows = await sql`
       INSERT INTO attendees
         (id, code, name, email, phone, tier, seat, company, notes, status)
       VALUES
         (${id}, ${code}, ${body.name.trim()},
-         ${body.email?.trim().toLowerCase() || null},
-         ${body.phone?.trim() || null},
+         ${cleanEmail || null},
+         ${cleanPhone || null},
          ${body.tier || 'GENERAL'},
          ${body.seat || null},
          ${body.company || null},
@@ -116,8 +147,8 @@ router.post('/', async (req, res) => {
           (id, code, name, email, phone, tier, seat, company, notes, status)
         VALUES
           (${id}, ${newCode}, ${body.name.trim()},
-           ${body.email?.trim().toLowerCase() || null},
-           ${body.phone?.trim() || null},
+           ${cleanEmail || null},
+           ${cleanPhone || null},
            ${body.tier || 'GENERAL'},
            ${body.seat || null},
            ${body.company || null},

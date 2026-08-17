@@ -3,7 +3,7 @@ import { storage } from '../services/storage';
 import { sound } from '../services/audio';
 import { User, Shield, ArrowRight, Loader, ArrowLeft } from 'lucide-react';
 
-export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'attendee' }) {
+export default function AuthPage({ onNavigate, onBack, onLoginSuccess, defaultTab = 'attendee' }) {
   const [loginInput, setLoginInput] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
@@ -60,7 +60,7 @@ export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'att
       onLoginSuccess('bouncer');
     } else {
       sound.playError();
-      setAdminError('Invalid admin or bouncer credentials.');
+      setAdminError('Invalid email or password.');
     }
   };
 
@@ -70,7 +70,7 @@ export default function AuthPage({ onNavigate, onLoginSuccess, defaultTab = 'att
       {/* Back Button Container */}
       <div style={{ width: '100%', maxWidth: 440, display: 'flex', justifyContent: 'flex-start', marginBottom: 20, zIndex: 20, position: 'relative' }}>
         <button 
-          onClick={() => onNavigate('landing')}
+          onClick={() => onBack ? onBack() : onNavigate('landing')}
           style={{ background: 'var(--card-bg)', border: '2px solid var(--black-ink)', padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, color: 'var(--black-ink)', boxShadow: '2px 2px 0 var(--black-ink)' }}
         >
           <ArrowLeft size={18} /> Back

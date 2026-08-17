@@ -19,13 +19,19 @@ const EVENT_INFO = {
 };
 
 export default function App() {
-  const [page, setPage] = useState('landing'); // 'landing' | 'auth' | 'user' | 'admin'
+  const [page, setPage] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (['landing', 'auth', 'user', 'admin', 'public_register'].includes(hash)) {
+      return hash;
+    }
+    return 'landing';
+  });
   const [adminRole, setAdminRole] = useState(null); // 'admin' | 'bouncer'
   const [authOpts, setAuthOpts] = useState({});
   const [scanCode, setScanCode] = useState(null);
   const [isDark, setIsDark] = useState(false);
 
-  // Initialize storage with demo data on first load
+  // Initialize storage and sync with browser history
   useEffect(() => {
     storage.ensureInitialized();
     const savedTheme = localStorage.getItem('theme');
@@ -33,6 +39,24 @@ export default function App() {
       setIsDark(true);
       document.documentElement.classList.add('dark');
     }
+
+    if (!window.history.state || !window.history.state.page) {
+      window.history.replaceState({ page }, '', `#${page}`);
+    }
+
+    const handlePopState = (event) => {
+      if (event.state && event.state.page) {
+        setPage(event.state.page);
+        if (event.state.opts) setAuthOpts(event.state.opts);
+        if (event.state.adminRole) setAdminRole(event.state.adminRole);
+      } else {
+        const hash = window.location.hash.replace('#', '');
+        setPage(hash || 'landing');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const toggleTheme = () => {
@@ -50,7 +74,16 @@ export default function App() {
   const navigate = (dest, opts = {}) => {
     setAuthOpts(opts);
     setPage(dest);
+    window.history.pushState({ page: dest, opts, adminRole }, '', `#${dest}`);
     window.scrollTo(0, 0);
+  };
+
+  const goBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigate('landing');
+    }
   };
 
   const quickLogin = (attendeeId) => {
@@ -58,38 +91,34 @@ export default function App() {
     const found = attendees.find(a => a.id === attendeeId);
     if (found) {
       storage.setActiveUser(found);
-      setPage('user');
+      navigate('user');
     }
   };
 
   const handleLoginSuccess = (role, user = null) => {
     if (role === 'admin' || role === 'bouncer') {
       setAdminRole(role);
-      setPage('admin');
+      navigate('admin');
     } else {
       if (user) storage.setActiveUser(user);
-      setPage('user');
+      navigate('user');
     }
-    window.scrollTo(0, 0);
   };
 
   const handleLogout = () => {
     storage.clearActiveUser();
     setAdminRole(null);
-    setPage('landing');
+    navigate('landing');
     setScanCode(null);
-    window.scrollTo(0, 0);
   };
 
   const switchToAdmin = (code = null) => {
     setScanCode(code);
-    setPage('admin');
-    window.scrollTo(0, 0);
+    navigate('admin');
   };
 
   const switchToUser = () => {
-    setPage('user');
-    window.scrollTo(0, 0);
+    navigate('user');
   };
 
   return (
@@ -104,12 +133,14 @@ export default function App() {
       {page === 'public_register' && (
         <PublicRegistration
           onNavigate={navigate}
+          onBack={goBack}
         />
       )}
 
       {page === 'auth' && (
         <AuthPage
           onNavigate={navigate}
+          onBack={goBack}
           onLoginSuccess={handleLoginSuccess}
           defaultTab={authOpts.defaultTab || 'attendee'}
         />
@@ -119,6 +150,7 @@ export default function App() {
         <UserPortal
           eventInfo={EVENT_INFO}
           onLogout={handleLogout}
+          onBack={goBack}
           onSwitchToAdmin={switchToAdmin}
         />
       )}
@@ -127,6 +159,7 @@ export default function App() {
         <AdminPortal
           eventInfo={EVENT_INFO}
           onLogout={handleLogout}
+          onBack={goBack}
           onSwitchToAttendee={switchToUser}
           initialScanCode={scanCode}
           adminRole={adminRole}
