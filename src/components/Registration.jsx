@@ -161,10 +161,11 @@ export default function Registration({ eventInfo, onCreatedAttendee }) {
                     <input className="pg-input" type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+91 98765 43210" />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--purple-main)', marginBottom: 8, textTransform: 'uppercase' }}>Pass Type *</label>
-                    <select className="pg-select" value={form.tier} onChange={e => setForm({ ...form, tier: e.target.value })}>
-                      {Object.entries(PASS_TIERS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                    </select>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--purple-main)', marginBottom: 8, textTransform: 'uppercase' }}>Pass Type</label>
+                    <div style={{ background: '#FAF5FF', border: '2px solid var(--black-ink)', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--black-ink)' }}>🎟️ Party Pass</span>
+                      <span style={{ background: 'var(--yellow-marker)', border: '1px solid var(--black-ink)', padding: '2px 8px', borderRadius: 4, fontWeight: 800, fontSize: 12 }}>₹350</span>
+                    </div>
                   </div>
                 </div>
                 

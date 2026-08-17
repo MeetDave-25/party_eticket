@@ -57,7 +57,7 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
             <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--black-ink)', marginBottom: 4 }}>{attendee.name}</h2>
             {attendee.company && <p style={{ fontSize: 13, color: '#6B7280', fontWeight: 600 }}>{attendee.company}</p>}
             <div style={{ marginTop: 10, display: 'inline-block', padding: '6px 16px', border: `2px solid ${col}`, color: col, borderRadius: 100, fontSize: 12, fontWeight: 800, letterSpacing: '0.05em' }}>
-              {tierInfo.label} PASS
+              {(tierInfo.label || 'PARTY PASS').toUpperCase()}
             </div>
           </div>
 

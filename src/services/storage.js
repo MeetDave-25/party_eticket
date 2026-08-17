@@ -20,12 +20,8 @@ function notifyChange() {
 
 // ─── Pass Tiers ─────────────────────────────────────────────
 export const PASS_TIERS = {
-  VIP:       { label: 'VIP Pass',       description: 'Premium front-row access + lounge',       color: '#FFE500', icon: 'Crown' },
-  SPEAKER:   { label: 'Speaker Pass',   description: 'Speaker room + stage area access',         color: '#C084FC', icon: 'Mic' },
-  ORGANIZER: { label: 'Organizer Pass', description: 'All-access staff & organizer badge',       color: '#FF2D9B', icon: 'ShieldCheck' },
-  PRESS:     { label: 'Press & Media',  description: 'Press deck + media coverage credentials',  color: '#00FF87', icon: 'Camera' },
-  GENERAL:   { label: 'General Access', description: 'Main hall general admission',              color: '#00D9FF', icon: 'Ticket' },
-  STUDENT:   { label: 'Student Pass',   description: 'Discounted student admission',             color: '#9D4EDD', icon: 'GraduationCap' },
+  GENERAL:   { label: 'Party Pass',     description: 'All-access party pass & dinner entry', color: '#FFE500', icon: 'Ticket' },
+  ORGANIZER: { label: 'Organizer Pass', description: 'Staff & organizer badge',             color: '#FF2D9B', icon: 'ShieldCheck' },
 };
 
 // ─── Active User (client-side session in sessionStorage) ──────

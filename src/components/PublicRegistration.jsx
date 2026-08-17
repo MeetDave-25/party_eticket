@@ -97,10 +97,17 @@ export default function PublicRegistration({ onNavigate }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--purple-main)', marginBottom: 8, textTransform: 'uppercase' }}>Pass Type *</label>
-                <select className="pg-input" value={form.tier} onChange={e => setForm({ ...form, tier: e.target.value })}>
-                  {Object.entries(PASS_TIERS).filter(([k]) => ['GENERAL', 'VIP', 'STUDENT'].includes(k)).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                </select>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--purple-main)', marginBottom: 8, textTransform: 'uppercase' }}>Pass Type</label>
+                <div style={{ background: '#FAF5FF', border: '2px solid var(--black-ink)', borderRadius: 8, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '2px 2px 0 var(--black-ink)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 18 }}>🎟️</span>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--black-ink)' }}>Fresher Party Pass</div>
+                      <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 600 }}>All-Access Entry & Dinner</div>
+                    </div>
+                  </div>
+                  <span style={{ background: 'var(--yellow-marker)', border: '1.5px solid var(--black-ink)', padding: '4px 10px', borderRadius: 6, fontWeight: 800, fontSize: 13, color: 'var(--black-ink)' }}>₹350</span>
+                </div>
               </div>
 
               {/* PAYMENT INFO */}
