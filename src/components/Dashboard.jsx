@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard({ onNavigate, onTestCode }) {
-  const [stats, setStats] = useState({ total: 0, checkedIn: 0, pending: 0, todayScans: 0 });
+  const [stats, setStats] = useState({ total: 0, checkedIn: 0, pendingApprovals: 0, approved: 0, todayScans: 0 });
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,10 +17,14 @@ export default function Dashboard({ onNavigate, onTestCode }) {
     const logs = await storage.getScanLogs();
     
     const checked = list.filter(a => a.checkedIn).length;
+    const pendingApp = list.filter(a => a.status === 'PENDING').length;
+    const approved = list.filter(a => a.status === 'APPROVED').length;
+
     setStats({
       total: list.length,
       checkedIn: checked,
-      pending: list.length - checked,
+      pendingApprovals: pendingApp,
+      approved: approved,
       todayScans: logs.length,
     });
     setRecentLogs(logs.slice(0, 5));
@@ -34,16 +38,16 @@ export default function Dashboard({ onNavigate, onTestCode }) {
   }, []);
 
   const ACTIONS = [
-    { id: 'scanner', label: 'Open Gate Scanner', icon: <QrCode size={20} />, col: 'var(--purple-main)', desc: 'Live ticket verification' },
-    { id: 'register', label: 'Issue Passes', icon: <Ticket size={20} />, col: '#10B981', desc: 'Create new passes or bulk import' },
-    { id: 'attendees', label: 'Guest List', icon: <Users size={20} />, col: '#F59E0B', desc: 'Manage registered attendees' },
+    { id: 'attendees', label: 'Review & Approve Passes', icon: <Users size={20} />, col: '#D97706', desc: 'Accept new ticket requests & guest list' },
+    { id: 'scanner', label: 'Open Gate Scanner', icon: <QrCode size={20} />, col: 'var(--purple-main)', desc: 'Live QR ticket verification at the gate' },
+    { id: 'register', label: 'Issue Manual Pass', icon: <Ticket size={20} />, col: '#10B981', desc: 'Add attendee or bulk import excel' },
   ];
 
   return (
     <div style={{ padding: '40px', fontFamily: 'var(--font-body)', maxWidth: 1200, margin: '0 auto' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <p style={{ fontSize: 13, fontFamily: 'var(--font-display)', color: 'var(--purple-light)', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase' }}>OVERVIEW</p>
           <h1 className="marker-font" style={{ fontSize: 40, color: 'var(--black-ink)', lineHeight: 1 }}>Command Center</h1>
@@ -56,24 +60,52 @@ export default function Dashboard({ onNavigate, onTestCode }) {
         </div>
       </div>
 
+      {/* Pending Approval Banner */}
+      {stats.pendingApprovals > 0 && (
+        <div style={{
+          background: '#FEF3C7', border: '2px solid #D97706', borderRadius: 12, padding: '18px 24px',
+          marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+          boxShadow: '4px 4px 0 rgba(0,0,0,0.06)'
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#92400E' }}>
+              ⚡ {stats.pendingApprovals} New Ticket Request{stats.pendingApprovals > 1 ? 's' : ''} Awaiting Your Approval!
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: 14, color: '#B45309' }}>
+              Verify their payment and click Approve to generate and deliver their QR pass.
+            </p>
+          </div>
+          <button 
+            onClick={() => { sound.playClick(); onNavigate('attendees'); }}
+            style={{
+              background: '#D97706', color: 'white', border: '2px solid #78350F', borderRadius: 8,
+              padding: '10px 20px', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+              boxShadow: '2px 2px 0 #78350F'
+            }}
+          >
+            Review & Accept Tickets →
+          </button>
+        </div>
+      )}
+
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24, marginBottom: 40 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 40 }}>
         {[
-          { label: 'Total Passes', value: stats.total, icon: <Ticket size={24} />, bg: '#F3E8FF', border: 'var(--purple-main)', color: 'var(--purple-main)' },
-          { label: 'Checked In', value: stats.checkedIn, icon: <CheckCircle2 size={24} />, bg: '#ECFDF5', border: '#10B981', color: '#10B981' },
-          { label: 'Pending', value: stats.pending, icon: <Users size={24} />, bg: '#FEF3C7', border: '#F59E0B', color: '#F59E0B' },
-          { label: 'Total Scans', value: stats.todayScans, icon: <TrendingUp size={24} />, bg: '#FEE2E2', border: '#EF4444', color: '#EF4444' }
+          { label: 'Total Registrations', value: stats.total, icon: <Ticket size={22} />, bg: '#F3E8FF', border: 'var(--purple-main)', color: 'var(--purple-main)' },
+          { label: 'Pending Approval', value: stats.pendingApprovals, icon: <Users size={22} />, bg: stats.pendingApprovals > 0 ? '#FEF3C7' : '#F9FAFB', border: stats.pendingApprovals > 0 ? '#D97706' : '#D1D5DB', color: stats.pendingApprovals > 0 ? '#D97706' : '#6B7280' },
+          { label: 'Approved Passes', value: stats.approved, icon: <CheckCircle2 size={22} />, bg: '#ECFDF5', border: '#10B981', color: '#10B981' },
+          { label: 'Checked In (Gate)', value: stats.checkedIn, icon: <QrCode size={22} />, bg: '#EFF6FF', border: '#3B82F6', color: '#3B82F6' },
         ].map((s, i) => (
-          <div key={i} className="paper-card" style={{ padding: '24px', background: s.bg, border: `2px solid ${s.border}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <div style={{ padding: '10px', background: 'white', borderRadius: 8, color: s.color, border: `2px solid ${s.border}` }}>{s.icon}</div>
-              <div className="tape top-center" style={{ width: 40, right: 10, left: 'auto', transform: 'rotate(5deg)' }} />
+          <div key={i} className="paper-card" style={{ padding: '20px', background: s.bg, border: `2px solid ${s.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div style={{ padding: '8px', background: 'white', borderRadius: 8, color: s.color, border: `2px solid ${s.border}` }}>{s.icon}</div>
+              <div className="tape top-center" style={{ width: 36, right: 10, left: 'auto', transform: 'rotate(5deg)' }} />
             </div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#4B5563', marginBottom: 4 }}>{s.label}</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#4B5563', marginBottom: 2 }}>{s.label}</p>
             {loading ? (
-              <Loader size={28} className="animate-spin" color={s.color} />
+              <Loader size={26} className="animate-spin" color={s.color} />
             ) : (
-              <p className="marker-font" style={{ fontSize: 44, fontWeight: 700, color: 'var(--black-ink)', lineHeight: 1 }}>{s.value}</p>
+              <p className="marker-font" style={{ fontSize: 38, fontWeight: 700, color: 'var(--black-ink)', lineHeight: 1, margin: 0 }}>{s.value}</p>
             )}
           </div>
         ))}
