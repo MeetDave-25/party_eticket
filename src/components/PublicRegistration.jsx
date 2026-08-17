@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { storage, PASS_TIERS } from '../services/storage';
 import { sound } from '../services/audio';
 import { UserPlus, CheckCircle2, AlertCircle, Loader, ArrowLeft, ExternalLink, Copy, Check } from 'lucide-react';
+import qrImage from '../assets/qr.jpeg';
 
 export default function PublicRegistration({ onNavigate, onBack }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', transactionId: '', tier: 'GENERAL' });
@@ -10,8 +11,8 @@ export default function PublicRegistration({ onNavigate, onBack }) {
   const [saving, setSaving] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
 
-  const UPI_ID = 'cyash4867@oksbi';
-  const PAYEE_NAME = 'Yash Chaudhari';
+  const UPI_ID = 'dabhiprit8770@oksbi';
+  const PAYEE_NAME = 'Prit Dabhi';
   const AMOUNT = 350;
   const UPI_URL = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${AMOUNT}&cu=INR&tn=FresherPartyPass`;
 
@@ -72,7 +73,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
           GRAB YOUR PASS
         </h1>
         <div style={{ display: 'inline-block', background: 'var(--yellow-marker)', color: 'var(--black-ink)', padding: '4px 16px', fontWeight: 800, transform: 'rotate(2deg)', marginTop: 8, border: '2px solid var(--black-ink)', boxShadow: '2px 2px 0 var(--black-ink)', fontSize: 13 }}>
-          STEP 1: PAY ₹350 → STEP 2: ENTER UTR → STEP 3: GET PASS
+          STEP 1: SCAN & PAY ₹350 → STEP 2: ENTER UTR → STEP 3: GET PASS
         </div>
       </div>
 
@@ -161,26 +162,21 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                   }}
                 >
                   <ExternalLink size={18} />
-                  <span>⚡ Pay via Google Pay / Any UPI App</span>
+                  <span>⚡ Pay ₹350 via Google Pay / Any UPI App</span>
                 </a>
 
                 {/* QR Code and UPI ID */}
                 <div style={{ display: 'flex', gap: 16, alignItems: 'center', background: 'white', border: '1.5px dashed #CBD5E1', borderRadius: 8, padding: 12 }}>
                   <img 
-                    src="/qr.jpeg" 
-                    onError={(e) => {
-                      // Fallback to high-res dynamic UPI QR code if qr.jpeg is not found
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(UPI_URL)}`;
-                    }}
-                    alt="UPI Payment QR Code" 
-                    style={{ borderRadius: 8, width: 95, height: 95, objectFit: 'contain', border: '1px solid #E2E8F0', flexShrink: 0 }} 
+                    src={qrImage} 
+                    alt="Google Pay QR Code - Prit Dabhi" 
+                    style={{ borderRadius: 8, width: 110, height: 110, objectFit: 'contain', border: '1px solid #E2E8F0', flexShrink: 0, background: '#F8FAFC' }} 
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: '#1E293B', margin: '0 0 4px' }}>Scan QR with GPay / PhonePe / Paytm</p>
-                    <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 8px' }}>Payee: <strong>{PAYEE_NAME}</strong></p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: '#1E293B', margin: '0 0 2px' }}>{PAYEE_NAME}</p>
+                    <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 8px' }}>Google Pay / Any UPI App</p>
                     
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 6, padding: '3px 8px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 6, padding: '4px 8px' }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 800, color: '#0F172A' }}>{UPI_ID}</span>
                       <button 
                         type="button" 
@@ -188,7 +184,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: copiedUpi ? '#10B981' : '#64748B' }}
                         title="Copy UPI ID"
                       >
-                        {copiedUpi ? <Check size={14} /> : <Copy size={14} />}
+                        {copiedUpi ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
                       </button>
                     </div>
                   </div>
