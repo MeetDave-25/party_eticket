@@ -14,8 +14,8 @@ export default function PublicRegistration({ onNavigate, onBack }) {
   const [qrMode, setQrMode] = useState('scannable'); // 'scannable' | 'gpay'
   const [dynamicQr, setDynamicQr] = useState('');
 
-  const UPI_ID = 'dabhiprit8770@oksbi';
-  const PAYEE_NAME = 'Prit Dabhi';
+  const UPI_ID = '9510479002@ptsbi';
+  const PAYEE_NAME = 'Dabhi Prit Dhanjibhai';
   const AMOUNT = 350;
   
   // Standard NPCI compliant UPI string with amount pre-filled
@@ -211,7 +211,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                       cursor: 'pointer'
                     }}
                   >
-                    🖼️ GPay Card View
+                    🖼️ Paytm Card View
                   </button>
                 </div>
 
@@ -237,7 +237,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                   ) : (
                     <img 
                       src={qrImage} 
-                      alt="Google Pay QR Code" 
+                      alt="Paytm QR Code - Dabhi Prit Dhanjibhai" 
                       style={{ width: 170, maxHeight: 220, objectFit: 'contain', borderRadius: 8, border: '1px solid #E2E8F0' }} 
                     />
                   )}
