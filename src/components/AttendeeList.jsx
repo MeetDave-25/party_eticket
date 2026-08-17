@@ -12,11 +12,20 @@ export default function AttendeeList({ onTestCode }) {
   const [filterTab, setFilterTab] = useState('ALL'); // 'ALL' | 'PENDING' | 'APPROVED' | 'CHECKED_IN'
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [copiedUtrId, setCopiedUtrId] = useState(null);
 
   const load = async () => {
     const list = await storage.getAttendees();
     setAttendees(list);
     setLoading(false);
+  };
+
+  const copyUtr = (id, utr) => {
+    if (!utr) return;
+    navigator.clipboard.writeText(utr);
+    sound.playClick();
+    setCopiedUtrId(id);
+    setTimeout(() => setCopiedUtrId(null), 2000);
   };
 
   const approvePass = async (att) => {
@@ -60,7 +69,8 @@ export default function AttendeeList({ onTestCode }) {
       a.name?.toLowerCase().includes(q) || 
       a.email?.toLowerCase().includes(q) || 
       a.code?.toLowerCase().includes(q) || 
-      a.phone?.includes(q);
+      a.phone?.includes(q) ||
+      a.transactionId?.toLowerCase().includes(q);
 
     let matchTab = true;
     if (filterTab === 'PENDING') matchTab = a.status === 'PENDING';
@@ -72,11 +82,12 @@ export default function AttendeeList({ onTestCode }) {
 
   const exportCSV = () => {
     sound.playClick();
-    const rows = [['Name','Email','Phone','Tier','Code','Seat','ApprovalStatus','CheckedIn','CheckedInAt']];
+    const rows = [['Name','Email','Phone','TransactionID_UTR','Tier','Code','Seat','ApprovalStatus','CheckedIn','CheckedInAt']];
     attendees.forEach(a => rows.push([
       a.name, 
       a.email||'', 
       a.phone||'', 
+      a.transactionId||'',
       a.tier||'GENERAL', 
       a.code, 
       a.seat||'', 
@@ -126,7 +137,7 @@ export default function AttendeeList({ onTestCode }) {
                 {pendingCount} Pass Request{pendingCount > 1 ? 's' : ''} Waiting for Approval!
               </p>
               <p style={{ fontSize: 13, color: '#B45309', margin: '2px 0 0' }}>
-                Attendees who submitted payment & registration are waiting for you to accept their ticket.
+                Verify the submitted UPI UTR / Transaction ID against your GPay statement, then click Approve.
               </p>
             </div>
           </div>
@@ -197,7 +208,7 @@ export default function AttendeeList({ onTestCode }) {
             style={{ paddingLeft: 46, width: '100%' }} 
             value={search} 
             onChange={e => setSearch(e.target.value)} 
-            placeholder="Search by name, email, phone number, or ticket code…" 
+            placeholder="Search by name, email, phone, UTR transaction ID, or ticket code…" 
           />
         </div>
       </div>
@@ -205,12 +216,12 @@ export default function AttendeeList({ onTestCode }) {
       {/* ─── Table ─── */}
       <div className="paper-card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table className="pg-table" style={{ minWidth: 800 }}>
+          <table className="pg-table" style={{ minWidth: 860 }}>
             <thead>
               <tr>
                 <th>Attendee</th>
                 <th>Contact</th>
-                <th>Pass Type</th>
+                <th>Payment UTR</th>
                 <th>Ticket Code</th>
                 <th>Approval Status</th>
                 <th>Gate Entry</th>
@@ -229,6 +240,7 @@ export default function AttendeeList({ onTestCode }) {
               ) : filtered.map(att => {
                 const isPending = att.status === 'PENDING';
                 const isBusy = actionLoadingId === att.id;
+                const isCopied = copiedUtrId === att.id;
                 
                 return (
                   <tr key={att.id} style={{ background: isPending ? '#FFFBEB' : 'transparent' }}>
@@ -259,11 +271,24 @@ export default function AttendeeList({ onTestCode }) {
                       <p style={{ fontSize: 12, color: '#6B7280', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{att.phone || '—'}</p>
                     </td>
 
-                    {/* Pass Type */}
+                    {/* Payment UTR */}
                     <td>
-                      <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 100, background: '#FAF5FF', color: 'var(--purple-main)', border: '1.5px solid var(--purple-main)' }}>
-                        {PASS_TIERS[att.tier]?.label || 'Party Pass'}
-                      </span>
+                      {att.transactionId ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F8FAFC', border: '1px solid #CBD5E1', padding: '3px 8px', borderRadius: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 800, color: '#0F172A' }}>
+                            {att.transactionId}
+                          </span>
+                          <button
+                            onClick={() => copyUtr(att.id, att.transactionId)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: isCopied ? '#10B981' : '#64748B' }}
+                            title="Copy UTR to verify in GPay/Bank"
+                          >
+                            {isCopied ? <Check size={13} color="#10B981" /> : <Copy size={13} />}
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                      )}
                     </td>
 
                     {/* Code */}
@@ -329,7 +354,7 @@ export default function AttendeeList({ onTestCode }) {
                                 cursor: isBusy ? 'wait' : 'pointer', color: 'white', fontSize: 13, fontWeight: 800,
                                 boxShadow: '2px 2px 0 var(--black-ink)'
                               }}
-                              title="Accept & Approve Ticket"
+                              title="Accept & Approve Ticket after verifying UTR"
                             >
                               <Check size={15} /> Approve
                             </button>

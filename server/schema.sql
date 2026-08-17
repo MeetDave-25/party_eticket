@@ -11,12 +11,15 @@ CREATE TABLE IF NOT EXISTS attendees (
   seat         TEXT,
   company      TEXT,
   notes        TEXT,
+  transaction_id TEXT,
   status       TEXT NOT NULL DEFAULT 'APPROVED',
   checked_in   BOOLEAN NOT NULL DEFAULT false,
   checked_in_at TIMESTAMPTZ,
   checked_in_by TEXT,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE attendees ADD COLUMN IF NOT EXISTS transaction_id TEXT;
 
 CREATE TABLE IF NOT EXISTS scan_logs (
   id              TEXT PRIMARY KEY,

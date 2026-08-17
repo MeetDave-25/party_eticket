@@ -16,20 +16,21 @@ function generateId() {
 function rowToAttendee(row) {
   if (!row) return null;
   return {
-    id:          row.id,
-    code:        row.code,
-    name:        row.name,
-    email:       row.email || '',
-    phone:       row.phone || '',
-    tier:        row.tier,
-    seat:        row.seat || '',
-    company:     row.company || '',
-    notes:       row.notes || '',
-    checkedIn:   row.checked_in,
-    checkedInAt: row.checked_in_at ? row.checked_in_at.toISOString() : null,
-    checkedInBy: row.checked_in_by || null,
-    status:      row.status,
-    createdAt:   row.created_at ? row.created_at.toISOString() : new Date().toISOString(),
+    id:            row.id,
+    code:          row.code,
+    name:          row.name,
+    email:         row.email || '',
+    phone:         row.phone || '',
+    tier:          row.tier,
+    seat:          row.seat || '',
+    company:       row.company || '',
+    notes:         row.notes || '',
+    transactionId: row.transaction_id || row.notes || '',
+    checkedIn:     row.checked_in,
+    checkedInAt:   row.checked_in_at ? row.checked_in_at.toISOString() : null,
+    checkedInBy:   row.checked_in_by || null,
+    status:        row.status,
+    createdAt:     row.created_at ? row.created_at.toISOString() : new Date().toISOString(),
   };
 }
 
@@ -90,6 +91,7 @@ router.post('/', async (req, res) => {
 
   const cleanEmail = body.email?.trim().toLowerCase();
   const cleanPhone = body.phone?.trim();
+  const txId       = body.transactionId?.trim() || body.notes?.trim() || null;
 
   try {
     // 1. Enforce only 1 registration per email
@@ -125,7 +127,7 @@ router.post('/', async (req, res) => {
 
     const rows = await sql`
       INSERT INTO attendees
-        (id, code, name, email, phone, tier, seat, company, notes, status)
+        (id, code, name, email, phone, tier, seat, company, notes, transaction_id, status)
       VALUES
         (${id}, ${code}, ${body.name.trim()},
          ${cleanEmail || null},
@@ -133,7 +135,8 @@ router.post('/', async (req, res) => {
          ${body.tier || 'GENERAL'},
          ${body.seat || null},
          ${body.company || null},
-         ${body.notes || null},
+         ${body.notes || txId || null},
+         ${txId},
          ${body.status || 'APPROVED'})
       RETURNING *
     `;
@@ -144,7 +147,7 @@ router.post('/', async (req, res) => {
       const newCode = generateCode(body.tier || 'GEN');
       const retry = await sql`
         INSERT INTO attendees
-          (id, code, name, email, phone, tier, seat, company, notes, status)
+          (id, code, name, email, phone, tier, seat, company, notes, transaction_id, status)
         VALUES
           (${id}, ${newCode}, ${body.name.trim()},
            ${cleanEmail || null},
@@ -152,7 +155,8 @@ router.post('/', async (req, res) => {
            ${body.tier || 'GENERAL'},
            ${body.seat || null},
            ${body.company || null},
-           ${body.notes || null},
+           ${body.notes || txId || null},
+           ${txId},
            ${body.status || 'APPROVED'})
         RETURNING *
       `;
@@ -169,17 +173,18 @@ router.put('/:id', async (req, res) => {
   try {
     const rows = await sql`
       UPDATE attendees SET
-        name          = COALESCE(${body.name || null},          name),
-        email         = COALESCE(${body.email || null},         email),
-        phone         = COALESCE(${body.phone || null},         phone),
-        tier          = COALESCE(${body.tier || null},          tier),
-        seat          = COALESCE(${body.seat || null},          seat),
-        company       = COALESCE(${body.company || null},       company),
-        notes         = COALESCE(${body.notes || null},         notes),
-        status        = COALESCE(${body.status || null},        status),
-        checked_in    = COALESCE(${body.checkedIn ?? null},     checked_in),
-        checked_in_at = COALESCE(${body.checkedInAt ? new Date(body.checkedInAt) : null}, checked_in_at),
-        checked_in_by = COALESCE(${body.checkedInBy || null},  checked_in_by)
+        name           = COALESCE(${body.name || null},           name),
+        email          = COALESCE(${body.email || null},          email),
+        phone          = COALESCE(${body.phone || null},          phone),
+        tier           = COALESCE(${body.tier || null},           tier),
+        seat           = COALESCE(${body.seat || null},           seat),
+        company        = COALESCE(${body.company || null},        company),
+        notes          = COALESCE(${body.notes || null},          notes),
+        transaction_id = COALESCE(${body.transactionId || null},  transaction_id),
+        status         = COALESCE(${body.status || null},         status),
+        checked_in     = COALESCE(${body.checkedIn ?? null},      checked_in),
+        checked_in_at  = COALESCE(${body.checkedInAt ? new Date(body.checkedInAt) : null}, checked_in_at),
+        checked_in_by  = COALESCE(${body.checkedInBy || null},   checked_in_by)
       WHERE id = ${req.params.id}
       RETURNING *
     `;
