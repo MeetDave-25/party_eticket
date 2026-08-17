@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS attendees (
   company      TEXT,
   notes        TEXT,
   transaction_id TEXT,
+  payment_proof TEXT,
   status       TEXT NOT NULL DEFAULT 'APPROVED',
   checked_in   BOOLEAN NOT NULL DEFAULT false,
   checked_in_at TIMESTAMPTZ,
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS attendees (
 );
 
 ALTER TABLE attendees ADD COLUMN IF NOT EXISTS transaction_id TEXT;
+ALTER TABLE attendees ADD COLUMN IF NOT EXISTS payment_proof TEXT;
 
 CREATE TABLE IF NOT EXISTS scan_logs (
   id              TEXT PRIMARY KEY,

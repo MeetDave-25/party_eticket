@@ -26,6 +26,7 @@ function rowToAttendee(row) {
     company:       row.company || '',
     notes:         row.notes || '',
     transactionId: row.transaction_id || row.notes || '',
+    paymentProof:  row.payment_proof || row.transaction_id || '',
     checkedIn:     row.checked_in,
     checkedInAt:   row.checked_in_at ? row.checked_in_at.toISOString() : null,
     checkedInBy:   row.checked_in_by || null,
@@ -91,7 +92,8 @@ router.post('/', async (req, res) => {
 
   const cleanEmail = body.email?.trim().toLowerCase();
   const cleanPhone = body.phone?.trim();
-  const txId       = body.transactionId?.trim() || body.notes?.trim() || null;
+  const txId       = body.transactionId?.trim() || null;
+  const proof      = body.paymentProof || null;
 
   try {
     // 1. Enforce only 1 registration per email
@@ -127,7 +129,7 @@ router.post('/', async (req, res) => {
 
     const rows = await sql`
       INSERT INTO attendees
-        (id, code, name, email, phone, tier, seat, company, notes, transaction_id, status)
+        (id, code, name, email, phone, tier, seat, company, notes, transaction_id, payment_proof, status)
       VALUES
         (${id}, ${code}, ${body.name.trim()},
          ${cleanEmail || null},
@@ -137,6 +139,7 @@ router.post('/', async (req, res) => {
          ${body.company || null},
          ${body.notes || txId || null},
          ${txId},
+         ${proof},
          ${body.status || 'APPROVED'})
       RETURNING *
     `;
@@ -147,7 +150,7 @@ router.post('/', async (req, res) => {
       const newCode = generateCode(body.tier || 'GEN');
       const retry = await sql`
         INSERT INTO attendees
-          (id, code, name, email, phone, tier, seat, company, notes, transaction_id, status)
+          (id, code, name, email, phone, tier, seat, company, notes, transaction_id, payment_proof, status)
         VALUES
           (${id}, ${newCode}, ${body.name.trim()},
            ${cleanEmail || null},
@@ -157,6 +160,7 @@ router.post('/', async (req, res) => {
            ${body.company || null},
            ${body.notes || txId || null},
            ${txId},
+           ${proof},
            ${body.status || 'APPROVED'})
         RETURNING *
       `;
@@ -181,6 +185,7 @@ router.put('/:id', async (req, res) => {
         company        = COALESCE(${body.company || null},        company),
         notes          = COALESCE(${body.notes || null},          notes),
         transaction_id = COALESCE(${body.transactionId || null},  transaction_id),
+        payment_proof  = COALESCE(${body.paymentProof || null},   payment_proof),
         status         = COALESCE(${body.status || null},         status),
         checked_in     = COALESCE(${body.checkedIn ?? null},      checked_in),
         checked_in_at  = COALESCE(${body.checkedInAt ? new Date(body.checkedInAt) : null}, checked_in_at),

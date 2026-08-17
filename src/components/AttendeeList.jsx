@@ -3,7 +3,8 @@ import { storage, PASS_TIERS } from '../services/storage';
 import { sound } from '../services/audio';
 import {
   Users, CheckCircle2, XCircle, Scan, Search,
-  Download, Activity, Loader, Trash2, Check, X, Clock, AlertTriangle
+  Download, Activity, Loader, Trash2, Check, X, Clock, AlertTriangle,
+  Image as ImageIcon, ExternalLink, Eye
 } from 'lucide-react';
 
 export default function AttendeeList({ onTestCode }) {
@@ -13,6 +14,7 @@ export default function AttendeeList({ onTestCode }) {
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [copiedUtrId, setCopiedUtrId] = useState(null);
+  const [selectedProof, setSelectedProof] = useState(null); // Attendee object for Receipt Modal
 
   const load = async () => {
     const list = await storage.getAttendees();
@@ -33,6 +35,9 @@ export default function AttendeeList({ onTestCode }) {
     try {
       await storage.updateAttendee(att.id, { status: 'APPROVED' });
       sound.playSuccess();
+      if (selectedProof?.id === att.id) {
+        setSelectedProof(null);
+      }
     } catch (err) {
       alert(`Failed to approve: ${err.message}`);
     } finally {
@@ -46,6 +51,9 @@ export default function AttendeeList({ onTestCode }) {
     try {
       await storage.deleteAttendee(att.id);
       sound.playClick();
+      if (selectedProof?.id === att.id) {
+        setSelectedProof(null);
+      }
     } catch (err) {
       alert(`Failed to delete: ${err.message}`);
     } finally {
@@ -82,12 +90,13 @@ export default function AttendeeList({ onTestCode }) {
 
   const exportCSV = () => {
     sound.playClick();
-    const rows = [['Name','Email','Phone','TransactionID_UTR','Tier','Code','Seat','ApprovalStatus','CheckedIn','CheckedInAt']];
+    const rows = [['Name','Email','Phone','TransactionID_UTR','HasReceiptImage','Tier','Code','Seat','ApprovalStatus','CheckedIn','CheckedInAt']];
     attendees.forEach(a => rows.push([
       a.name, 
       a.email||'', 
       a.phone||'', 
       a.transactionId||'',
+      a.paymentProof ? 'YES' : 'NO',
       a.tier||'GENERAL', 
       a.code, 
       a.seat||'', 
@@ -137,7 +146,7 @@ export default function AttendeeList({ onTestCode }) {
                 {pendingCount} Pass Request{pendingCount > 1 ? 's' : ''} Waiting for Approval!
               </p>
               <p style={{ fontSize: 13, color: '#B45309', margin: '2px 0 0' }}>
-                Verify the submitted UPI UTR / Transaction ID against your GPay statement, then click Approve.
+                Review attached payment screenshots and click Approve to issue their E-Ticket.
               </p>
             </div>
           </div>
@@ -221,7 +230,7 @@ export default function AttendeeList({ onTestCode }) {
               <tr>
                 <th>Attendee</th>
                 <th>Contact</th>
-                <th>Payment UTR</th>
+                <th>Payment / Receipt</th>
                 <th>Ticket Code</th>
                 <th>Approval Status</th>
                 <th>Gate Entry</th>
@@ -271,24 +280,43 @@ export default function AttendeeList({ onTestCode }) {
                       <p style={{ fontSize: 12, color: '#6B7280', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{att.phone || '—'}</p>
                     </td>
 
-                    {/* Payment UTR */}
+                    {/* Payment / Receipt */}
                     <td>
-                      {att.transactionId ? (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F8FAFC', border: '1px solid #CBD5E1', padding: '3px 8px', borderRadius: 6 }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 800, color: '#0F172A' }}>
-                            {att.transactionId}
-                          </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                        {att.paymentProof && (
                           <button
-                            onClick={() => copyUtr(att.id, att.transactionId)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: isCopied ? '#10B981' : '#64748B' }}
-                            title="Copy UTR to verify in GPay/Bank"
+                            onClick={() => { sound.playClick(); setSelectedProof(att); }}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px',
+                              background: '#EFF6FF', border: '1.5px solid #3B82F6', borderRadius: 6,
+                              cursor: 'pointer', fontWeight: 800, fontSize: 12, color: '#1D4ED8',
+                              boxShadow: '1px 1px 0 rgba(0,0,0,0.05)'
+                            }}
+                            title="Click to view full payment screenshot"
                           >
-                            {isCopied ? <Check size={13} color="#10B981" /> : <Copy size={13} />}
+                            <ImageIcon size={14} /> View Receipt 📷
                           </button>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
-                      )}
+                        )}
+                        
+                        {att.transactionId && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F8FAFC', border: '1px solid #CBD5E1', padding: '2px 7px', borderRadius: 6 }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, fontWeight: 800, color: '#0F172A' }}>
+                              {att.transactionId}
+                            </span>
+                            <button
+                              onClick={() => copyUtr(att.id, att.transactionId)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: isCopied ? '#10B981' : '#64748B' }}
+                              title="Copy UTR to verify in GPay/Bank"
+                            >
+                              {isCopied ? <Check size={12} color="#10B981" /> : <Eye size={12} />}
+                            </button>
+                          </div>
+                        )}
+
+                        {!att.paymentProof && !att.transactionId && (
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Code */}
@@ -354,7 +382,7 @@ export default function AttendeeList({ onTestCode }) {
                                 cursor: isBusy ? 'wait' : 'pointer', color: 'white', fontSize: 13, fontWeight: 800,
                                 boxShadow: '2px 2px 0 var(--black-ink)'
                               }}
-                              title="Accept & Approve Ticket after verifying UTR"
+                              title="Accept & Approve Ticket"
                             >
                               <Check size={15} /> Approve
                             </button>
@@ -414,6 +442,101 @@ export default function AttendeeList({ onTestCode }) {
       <p style={{ fontSize: 13, color: '#6B7280', marginTop: 16, textAlign: 'right', fontWeight: 600 }}>
         Showing {filtered.length} of {attendees.length} attendees
       </p>
+
+      {/* ─── Payment Receipt Lightbox Modal ─── */}
+      {selectedProof && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20, backdropFilter: 'blur(4px)'
+        }}>
+          <div className="paper-card" style={{
+            width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto',
+            padding: '28px', position: 'relative', background: 'white'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <h3 className="marker-font" style={{ fontSize: 24, margin: 0, color: 'var(--purple-main)' }}>
+                  Payment Receipt Review
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6B7280' }}>
+                  Attendee: <strong>{selectedProof.name}</strong>
+                </p>
+              </div>
+              <button 
+                onClick={() => setSelectedProof(null)}
+                style={{ background: '#F3F4F6', border: '1px solid #D1D5DB', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Receipt Image Display */}
+            <div style={{ background: '#F8FAFC', border: '2px dashed #CBD5E1', borderRadius: 10, padding: 12, textAlign: 'center', marginBottom: 16 }}>
+              {selectedProof.paymentProof ? (
+                <img 
+                  src={selectedProof.paymentProof} 
+                  alt="Payment Receipt" 
+                  style={{ width: '100%', maxHeight: '50vh', objectFit: 'contain', borderRadius: 8 }} 
+                />
+              ) : (
+                <p style={{ color: '#6B7280', padding: '20px 0' }}>No image receipt uploaded.</p>
+              )}
+            </div>
+
+            {/* Attendee Info Card */}
+            <div style={{ background: '#FAF5FF', border: '1.5px solid var(--purple-main)', borderRadius: 8, padding: 12, marginBottom: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 13 }}>
+              <div>
+                <span style={{ color: '#6B7280', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>EMAIL:</span>
+                <p style={{ margin: 0, fontWeight: 700 }}>{selectedProof.email || '—'}</p>
+              </div>
+              <div>
+                <span style={{ color: '#6B7280', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>PHONE:</span>
+                <p style={{ margin: 0, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{selectedProof.phone || '—'}</p>
+              </div>
+              {selectedProof.transactionId && (
+                <div style={{ gridColumn: 'span 2' }}>
+                  <span style={{ color: '#6B7280', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>UTR / REF NO:</span>
+                  <p style={{ margin: 0, fontWeight: 900, fontFamily: 'var(--font-mono)', color: '#1E40AF' }}>{selectedProof.transactionId}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', gap: 12 }}>
+              {selectedProof.status === 'PENDING' ? (
+                <>
+                  <button
+                    onClick={() => approvePass(selectedProof)}
+                    disabled={actionLoadingId === selectedProof.id}
+                    className="btn-success"
+                    style={{ flex: 1, padding: '12px', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  >
+                    <Check size={18} /> Approve & Activate Pass
+                  </button>
+                  <button
+                    onClick={() => rejectPass(selectedProof)}
+                    disabled={actionLoadingId === selectedProof.id}
+                    style={{
+                      padding: '12px 18px', background: '#FEE2E2', border: '2px solid #EF4444',
+                      borderRadius: 8, color: '#B91C1C', fontWeight: 800, cursor: 'pointer'
+                    }}
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <div style={{ width: '100%', textAlign: 'center', padding: '8px', background: '#D1FAE5', borderRadius: 8, color: '#047857', fontWeight: 800 }}>
+                  ✓ This pass is already APPROVED
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

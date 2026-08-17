@@ -1,40 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { storage, PASS_TIERS } from '../services/storage';
+import React, { useState } from 'react';
+import { storage } from '../services/storage';
 import { sound } from '../services/audio';
-import { UserPlus, CheckCircle2, AlertCircle, Loader, ArrowLeft, ExternalLink, Copy, Check, QrCode as QrIcon } from 'lucide-react';
-import QRCode from 'qrcode';
+import { UserPlus, CheckCircle2, AlertCircle, Loader, ArrowLeft, ExternalLink, Copy, Check, Upload, Image as ImageIcon, X } from 'lucide-react';
 import qrImage from '../assets/qr.jpeg';
 
 export default function PublicRegistration({ onNavigate, onBack }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', transactionId: '', tier: 'GENERAL' });
+  const [paymentProof, setPaymentProof] = useState(null); // base64 string
   const [submitted, setSubmitted] = useState(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
-  const [qrMode, setQrMode] = useState('scannable'); // 'scannable' | 'gpay'
-  const [dynamicQr, setDynamicQr] = useState('');
 
   const UPI_ID = '9510479002@ptsbi';
   const PAYEE_NAME = 'Dabhi Prit Dhanjibhai';
   const AMOUNT = 350;
-  
-  // Standard NPCI compliant UPI string with amount pre-filled
   const UPI_URL = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${AMOUNT}&cu=INR&tn=FresherPartyPass`;
-
-  // Generate crisp standard NPCI UPI QR code on mount
-  useEffect(() => {
-    QRCode.toDataURL(UPI_URL, {
-      width: 400,
-      margin: 1,
-      errorCorrectionLevel: 'M',
-      color: {
-        dark: '#000000',
-        light: '#ffffff'
-      }
-    })
-    .then(url => setDynamicQr(url))
-    .catch(err => console.error('QR generation error:', err));
-  }, []);
 
   const copyUpiId = () => {
     navigator.clipboard.writeText(UPI_ID);
@@ -43,26 +24,75 @@ export default function PublicRegistration({ onNavigate, onBack }) {
     setTimeout(() => setCopiedUpi(false), 2000);
   };
 
+  // Compress and convert uploaded image to base64
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file (JPEG, PNG, etc.).');
+      sound.playWarning();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 900;
+        const MAX_HEIGHT = 900;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+        
+        setPaymentProof(compressedBase64);
+        sound.playSuccess();
+        setError('');
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!form.name.trim()) { setError('Full name is required.'); sound.playWarning(); return; }
     if (!form.email.trim() && !form.phone.trim()) { setError('Either email or phone is required.'); sound.playWarning(); return; }
-    if (!form.transactionId.trim()) { 
-      setError('Please enter your 12-digit UPI Transaction ID / UTR number after paying ₹350.'); 
+    if (!paymentProof && !form.transactionId.trim()) { 
+      setError('Please upload a screenshot of your ₹350 payment receipt or enter the UTR.'); 
       sound.playWarning(); 
       return; 
     }
 
     setSaving(true);
     try {
-      // Send as PENDING so admins have to verify UTR and approve
+      // Send as PENDING so admins have to verify screenshot and approve
       const att = await storage.addAttendee({ 
         ...form, 
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim(),
         transactionId: form.transactionId.trim(),
+        paymentProof: paymentProof || null,
         status: 'PENDING' 
       });
       sound.playSuccess();
@@ -88,12 +118,12 @@ export default function PublicRegistration({ onNavigate, onBack }) {
         </button>
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: 32, zIndex: 10, position: 'relative' }}>
+      <div style={{ textAlign: 'center', marginBottom: 28, zIndex: 10, position: 'relative' }}>
         <h1 className="marker-font" style={{ fontSize: 44, color: 'var(--purple-main)', lineHeight: 1, transform: 'rotate(-2deg)' }}>
           GRAB YOUR PASS
         </h1>
         <div style={{ display: 'inline-block', background: 'var(--yellow-marker)', color: 'var(--black-ink)', padding: '4px 16px', fontWeight: 800, transform: 'rotate(2deg)', marginTop: 8, border: '2px solid var(--black-ink)', boxShadow: '2px 2px 0 var(--black-ink)', fontSize: 13 }}>
-          STEP 1: SCAN & PAY ₹350 → STEP 2: ENTER UTR → STEP 3: GET PASS
+          STEP 1: SCAN & PAY ₹350 → STEP 2: UPLOAD RECEIPT → STEP 3: GET PASS
         </div>
       </div>
 
@@ -105,14 +135,18 @@ export default function PublicRegistration({ onNavigate, onBack }) {
             </div>
             <h2 className="marker-font" style={{ fontSize: 32, color: '#1E3A8A', textAlign: 'center', margin: 0 }}>Pass Requested!</h2>
             <p style={{ fontSize: 16, color: '#1E40AF', textAlign: 'center', fontWeight: 600, margin: 0 }}>
-              Thanks, <strong>{submitted.name}</strong>! Your registration has been received.
+              Thanks, <strong>{submitted.name}</strong>! Your registration and payment proof have been received.
             </p>
-            <div style={{ background: 'white', border: '2px dashed #93C5FD', borderRadius: 8, padding: '12px 16px', width: '100%', textAlign: 'center' }}>
-              <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 4px', fontWeight: 700 }}>SUBMITTED TRANSACTION ID / UTR:</p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 900, color: '#1E40AF', margin: 0 }}>{submitted.transactionId || form.transactionId}</p>
-            </div>
+            
+            {paymentProof && (
+              <div style={{ background: 'white', border: '2px dashed #93C5FD', borderRadius: 8, padding: 10, textAlign: 'center' }}>
+                <p style={{ fontSize: 11, color: '#6B7280', margin: '0 0 6px', fontWeight: 700 }}>UPLOADED PAYMENT RECEIPT:</p>
+                <img src={paymentProof} alt="Payment Proof Preview" style={{ maxHeight: 140, borderRadius: 6, border: '1px solid #BFDBFE' }} />
+              </div>
+            )}
+
             <p style={{ fontSize: 14, color: '#1E3A8A', textAlign: 'center', lineHeight: 1.5 }}>
-              Once organizers verify your payment against this UTR, your E-Ticket with QR code will be activated.
+              Once organizers verify your payment receipt, your E-Ticket with gate QR code will be activated.
             </p>
             <button onClick={() => onNavigate('auth')} className="btn-primary" style={{ marginTop: 10, padding: '12px 24px', fontSize: 15 }}>
               Go to Login Page
@@ -159,7 +193,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                 </div>
               </div>
 
-              {/* ─── SECTION 2: Payment Details with Direct UPI & QR ─── */}
+              {/* ─── SECTION 2: Paytm Payment Card View ─── */}
               <div style={{ background: '#F8FAFC', border: '2px solid var(--black-ink)', borderRadius: 12, padding: '20px', boxShadow: '3px 3px 0 var(--black-ink)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                   <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--black-ink)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -182,69 +216,20 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                   }}
                 >
                   <ExternalLink size={18} />
-                  <span>⚡ Pay ₹350 via Google Pay / Any UPI App</span>
+                  <span>⚡ Pay ₹350 via Google Pay / Paytm / Any UPI</span>
                 </a>
 
-                {/* QR Code Switcher Tabs (Universal Scannable QR vs GPay Poster) */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 12 }}>
-                  <button
-                    type="button"
-                    onClick={() => { sound.playClick(); setQrMode('scannable'); }}
-                    style={{
-                      padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 6,
-                      border: '1.5px solid var(--black-ink)',
-                      background: qrMode === 'scannable' ? 'var(--purple-main)' : 'white',
-                      color: qrMode === 'scannable' ? 'white' : 'var(--black-ink)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ⚡ Fast Scan QR
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { sound.playClick(); setQrMode('gpay'); }}
-                    style={{
-                      padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 6,
-                      border: '1.5px solid var(--black-ink)',
-                      background: qrMode === 'gpay' ? 'var(--purple-main)' : 'white',
-                      color: qrMode === 'gpay' ? 'white' : 'var(--black-ink)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    🖼️ Paytm Card View
-                  </button>
-                </div>
-
-                {/* QR Display Area */}
+                {/* Centered Paytm QR Card */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'white', border: '1.5px dashed #CBD5E1', borderRadius: 10, padding: 16 }}>
-                  {qrMode === 'scannable' ? (
-                    dynamicQr ? (
-                      <div style={{ textAlign: 'center' }}>
-                        <img 
-                          src={dynamicQr} 
-                          alt="Payable UPI QR Code" 
-                          style={{ width: 170, height: 170, borderRadius: 8, border: '1px solid #E2E8F0', display: 'block', margin: '0 auto 8px' }} 
-                        />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', background: '#D1FAE5', padding: '3px 8px', borderRadius: 4 }}>
-                          ✓ Standard NPCI UPI — Scans with all apps
-                        </span>
-                      </div>
-                    ) : (
-                      <div style={{ height: 170, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Loader className="animate-spin" size={24} />
-                      </div>
-                    )
-                  ) : (
-                    <img 
-                      src={qrImage} 
-                      alt="Paytm QR Code - Dabhi Prit Dhanjibhai" 
-                      style={{ width: 170, maxHeight: 220, objectFit: 'contain', borderRadius: 8, border: '1px solid #E2E8F0' }} 
-                    />
-                  )}
+                  <img 
+                    src={qrImage} 
+                    alt="Paytm QR Code - Dabhi Prit Dhanjibhai" 
+                    style={{ width: '100%', maxWidth: 240, maxHeight: 300, objectFit: 'contain', borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }} 
+                  />
 
-                  <div style={{ marginTop: 12, textAlign: 'center', width: '100%' }}>
+                  <div style={{ marginTop: 14, textAlign: 'center', width: '100%' }}>
                     <p style={{ fontSize: 14, fontWeight: 800, color: '#1E293B', margin: '0 0 2px' }}>{PAYEE_NAME}</p>
-                    <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 8px' }}>Google Pay / PhonePe / Paytm / BHIM</p>
+                    <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 8px' }}>Scan with Paytm, Google Pay, PhonePe, or BHIM</p>
                     
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 6, padding: '4px 10px' }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, fontWeight: 800, color: '#0F172A' }}>{UPI_ID}</span>
@@ -261,21 +246,78 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                 </div>
               </div>
 
-              {/* ─── SECTION 3: Transaction ID Input ─── */}
+              {/* ─── SECTION 3: Upload Payment Screenshot ─── */}
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: 'var(--purple-main)', marginBottom: 6, textTransform: 'uppercase' }}>
-                  🔑 Step 2: UPI Transaction ID / UTR Number *
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: 'var(--purple-main)', marginBottom: 8, textTransform: 'uppercase' }}>
+                  📷 Step 2: Upload Payment Screenshot *
+                </label>
+                
+                {paymentProof ? (
+                  <div style={{ 
+                    display: 'flex', alignItems: 'center', gap: 14, background: '#F0FDF4', 
+                    border: '2px solid #10B981', borderRadius: 10, padding: 14 
+                  }}>
+                    <img 
+                      src={paymentProof} 
+                      alt="Uploaded Receipt" 
+                      style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: '1.5px solid #10B981' }} 
+                    />
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 800, color: '#065F46', margin: '0 0 2px' }}>
+                        ✓ Screenshot Attached!
+                      </p>
+                      <p style={{ fontSize: 12, color: '#047857', margin: 0 }}>
+                        Ready to submit with your registration.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentProof(null)}
+                      style={{ 
+                        background: '#FEE2E2', border: '1px solid #EF4444', color: '#B91C1C', 
+                        borderRadius: 6, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' 
+                      }}
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <label style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: 8, padding: '24px 16px', background: '#F8FAFC', border: '2px dashed #94A3B8',
+                    borderRadius: 10, cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s'
+                  }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
+                      <Upload size={22} />
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--black-ink)' }}>
+                      Tap to Upload Payment Screenshot
+                    </span>
+                    <span style={{ fontSize: 12, color: '#64748B' }}>
+                      Supports photos from camera or gallery (JPEG, PNG)
+                    </span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      style={{ display: 'none' }} 
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Optional UTR / Reference */}
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6B7280', marginBottom: 4, textTransform: 'uppercase' }}>
+                  UPI Ref / UTR No. (Optional)
                 </label>
                 <input 
                   className="pg-input" 
-                  required 
                   value={form.transactionId} 
                   onChange={e => setForm({ ...form, transactionId: e.target.value })} 
-                  placeholder="E.g. 423589123456 (12-digit UTR from GPay / PhonePe)" 
+                  placeholder="E.g. 423589123456" 
+                  style={{ fontSize: 13, padding: '10px 14px' }}
                 />
-                <p style={{ fontSize: 12, color: '#6B7280', marginTop: 4, fontWeight: 500, lineHeight: 1.4 }}>
-                  💡 Check your GPay/UPI payment receipt for <strong>UPI Ref No / UTR</strong> and paste it here so organizers can verify and approve your ticket.
-                </p>
               </div>
 
               {/* Submit Button */}
@@ -283,7 +325,7 @@ export default function PublicRegistration({ onNavigate, onBack }) {
                 type="submit" 
                 disabled={saving} 
                 className="btn-success" 
-                style={{ padding: '16px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 4 }}
+                style={{ padding: '16px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 6 }}
               >
                 {saving ? <><Loader size={20} className="animate-spin" /> Submitting Request...</> : <><UserPlus size={20} /> Submit & Request Pass</>}
               </button>
