@@ -4,8 +4,9 @@ import { sound } from '../services/audio';
 import {
   Users, CheckCircle2, XCircle, Scan, Search,
   Download, Activity, Loader, Trash2, Check, X, Clock, AlertTriangle,
-  Image as ImageIcon, ExternalLink, Eye, RefreshCw
+  Image as ImageIcon, ExternalLink, Eye, RefreshCw, Upload
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 export default function AttendeeList({ onTestCode }) {
   const [attendees, setAttendees] = useState([]);
@@ -13,6 +14,7 @@ export default function AttendeeList({ onTestCode }) {
   const [filterTab, setFilterTab] = useState('ALL'); // 'ALL' | 'PENDING' | 'APPROVED' | 'CHECKED_IN'
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [copiedUtrId, setCopiedUtrId] = useState(null);
@@ -128,6 +130,42 @@ export default function AttendeeList({ onTestCode }) {
     URL.revokeObjectURL(url);
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setImporting(true);
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      
+      let count = 0;
+      for (const row of rows) {
+        if (!row.Name && !row.name) continue;
+        
+        await storage.addAttendee({
+          name: row.Name || row.name,
+          email: row.Email || row.email || '',
+          phone: row.Phone || row.phone ? String(row.Phone || row.phone) : '',
+          tier: row.Tier || row.tier || 'GENERAL',
+          status: row.Status || row.status || 'APPROVED'
+        });
+        count++;
+      }
+      sound.playSuccess();
+      alert(`Successfully imported ${count} attendees!`);
+      await load(true);
+    } catch (err) {
+      console.error('Import error:', err);
+      alert('Failed to import Excel file. Please check the format.');
+    } finally {
+      setImporting(false);
+      e.target.value = null; // reset input
+    }
+  };
+
   return (
     <div style={{ padding: '36px 40px', fontFamily: 'var(--font-body)', maxWidth: 1200, margin: '0 auto' }}>
       
@@ -156,6 +194,12 @@ export default function AttendeeList({ onTestCode }) {
           <button onClick={exportCSV} className="btn-secondary" style={{ padding: '10px 20px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Download size={17} /> Export CSV
           </button>
+          
+          <label className={`btn-secondary ${importing ? 'opacity-50 pointer-events-none' : ''}`} style={{ padding: '10px 20px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', margin: 0 }}>
+            {importing ? <Loader size={17} className="animate-spin" /> : <Upload size={17} />}
+            {importing ? 'Importing...' : 'Import Excel'}
+            <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} style={{ display: 'none' }} />
+          </label>
         </div>
       </div>
 

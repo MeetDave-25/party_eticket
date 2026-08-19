@@ -37,50 +37,64 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
       
       {/* ─── TICKET CONTAINER ─── */}
-      <div ref={containerRef} style={{ width: 340, background: 'white', border: '3px solid var(--black-ink)', borderRadius: 16, overflow: 'hidden', position: 'relative', boxShadow: '6px 6px 0 rgba(17,24,39,0.1)' }}>
+      <div ref={containerRef} style={{ 
+        width: '100%', 
+        maxWidth: 800, 
+        aspectRatio: '1500 / 1000', // Approx landscape aspect ratio
+        background: '#000', 
+        borderRadius: 16, 
+        overflow: 'hidden', 
+        position: 'relative', 
+        boxShadow: '0 10px 25px rgba(0,0,0,0.5)' 
+      }}>
+        <img src="/pass.jpeg" alt="Pass Background" crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         
-        {/* Ticket Header */}
-        <div style={{ background: 'var(--yellow-marker)', padding: '20px 20px 30px', textAlign: 'center', borderBottom: '3px dashed var(--black-ink)', position: 'relative' }}>
-          <p className="marker-font" style={{ fontSize: 24, color: 'var(--purple-main)', lineHeight: 1 }}>{eventInfo.name}</p>
-          <div style={{ display: 'inline-block', background: 'var(--black-ink)', color: 'white', padding: '4px 12px', fontSize: 11, fontWeight: 800, marginTop: 6, transform: 'rotate(-2deg)' }}>
-            {eventInfo.subtitle}
-          </div>
-          {/* Half-circles for ticket tear effect */}
-          <div style={{ position: 'absolute', bottom: -12, left: -12, width: 20, height: 20, background: 'var(--paper-bg)', borderRadius: '50%', border: '3px solid var(--black-ink)' }} />
-          <div style={{ position: 'absolute', bottom: -12, right: -12, width: 20, height: 20, background: 'var(--paper-bg)', borderRadius: '50%', border: '3px solid var(--black-ink)' }} />
+        {/* QR Code Overlay (Right side box) */}
+        <div style={{ 
+          position: 'absolute', 
+          right: '5.2%', 
+          top: '30%', 
+          width: '21.5%', 
+          aspectRatio: '1/1', 
+          background: 'white',
+          padding: '2%',
+          borderRadius: 8
+        }}>
+          {qrUrl ? <img src={qrUrl} style={{ width: '100%', height: '100%', display: 'block' }} alt="QR Code" /> : null}
         </div>
 
-        {/* Ticket Body */}
-        <div style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ccircle cx=\'2\' cy=\'2\' r=\'1\' fill=\'%23e5e7eb\'/%3E%3C/svg%3E")' }}>
-          
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--black-ink)', marginBottom: 4 }}>{attendee.name}</h2>
-            {attendee.company && <p style={{ fontSize: 13, color: '#6B7280', fontWeight: 600 }}>{attendee.company}</p>}
-            <div style={{ marginTop: 10, display: 'inline-block', padding: '6px 16px', border: `2px solid ${col}`, color: col, borderRadius: 100, fontSize: 12, fontWeight: 800, letterSpacing: '0.05em' }}>
-              {(tierInfo.label || 'PARTY PASS').toUpperCase()}
-            </div>
-          </div>
-
-          <div style={{ padding: 12, background: 'white', border: '3px solid var(--black-ink)', borderRadius: 12, marginBottom: 20, transform: 'rotate(1deg)' }}>
-            {qrUrl ? <img src={qrUrl} width={160} height={160} alt="QR Code" style={{ display: 'block' }} /> : <div style={{ width: 160, height: 160, background: '#f3f4f6' }} />}
-          </div>
-
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: '#4B5563', letterSpacing: '0.1em' }}>{attendee.code}</p>
-
+        {/* Attendee Name overlay */}
+        <div style={{ 
+          position: 'absolute', 
+          right: '5.2%', 
+          top: '23%', 
+          width: '21.5%', 
+          textAlign: 'center', 
+          color: '#38bdf8', 
+          fontSize: 'clamp(12px, 1.8vw, 24px)', 
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+        }}>
+          {attendee.name}
         </div>
 
-        {/* Ticket Footer */}
-        <div style={{ background: 'var(--purple-main)', padding: '16px 20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '3px solid var(--black-ink)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700 }}>
-            <p style={{ opacity: 0.7, marginBottom: 2 }}>VENUE</p>
-            <p>{eventInfo.venue}</p>
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 700, textAlign: 'right' }}>
-            <p style={{ opacity: 0.7, marginBottom: 2 }}>DATE</p>
-            <p>{eventInfo.date}</p>
-          </div>
+        {/* Ticket Code overlay */}
+        <div style={{ 
+          position: 'absolute', 
+          right: '5.2%', 
+          top: '56%', 
+          width: '21.5%', 
+          textAlign: 'center', 
+          color: '#fff', 
+          fontSize: 'clamp(10px, 1.4vw, 18px)', 
+          fontWeight: 700,
+          fontFamily: 'var(--font-mono)',
+          textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+        }}>
+          {attendee.code}
         </div>
-
       </div>
 
       {/* ─── ACTIONS ─── */}
