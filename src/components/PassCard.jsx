@@ -52,34 +52,34 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
         {/* ─── NEON ENTRY BOX OVERLAY (Right stub) ─── */}
         <div style={{ 
           position: 'absolute', 
-          left: '76.6%', 
-          top: '28.6%', 
-          width: '21.0%', 
-          height: '35.8%', 
-          background: '#05070f',
-          borderRadius: 12,
-          padding: '2.5% 2%',
+          left: '76.8%', 
+          top: '29.8%', 
+          width: '20.6%', 
+          height: '34.2%', 
+          background: 'transparent',
+          padding: '2px 0',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'space-between',
           boxSizing: 'border-box',
-          overflow: 'hidden'
+          pointerEvents: 'none'
         }}>
           {/* 1. Attendee Name (Top) */}
           <div style={{ 
             width: '100%',
             textAlign: 'center', 
             color: '#38bdf8', 
-            fontSize: 'clamp(9px, 1.25vw, 15px)', 
+            fontSize: 'clamp(8px, 1.15vw, 14px)', 
             fontWeight: 900,
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            textShadow: '0 0 8px rgba(56, 189, 248, 0.5)',
-            lineHeight: 1.15
+            textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 0 8px rgba(56, 189, 248, 0.4)',
+            lineHeight: 1.1,
+            padding: '0 4px'
           }}>
             {attendee.name}
           </div>
@@ -89,12 +89,12 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
             background: 'white',
             padding: '3%',
             borderRadius: 8,
-            width: '68%',
+            width: '66%',
             aspectRatio: '1 / 1',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.8)',
             flexShrink: 0
           }}>
             {qrUrl ? (
@@ -111,12 +111,13 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
             width: '100%',
             textAlign: 'center', 
             color: '#FBBF24', 
-            fontSize: 'clamp(8px, 1.05vw, 13px)', 
+            fontSize: 'clamp(8px, 0.95vw, 12px)', 
             fontWeight: 800,
             fontFamily: 'var(--font-mono)',
             letterSpacing: '0.06em',
-            textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-            lineHeight: 1.15
+            textShadow: '0 2px 4px rgba(0,0,0,0.9)',
+            lineHeight: 1.1,
+            padding: '0 4px'
           }}>
             {attendee.code}
           </div>
