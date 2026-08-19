@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sound } from '../services/audio';
-import { Users, Music, Camera, Gamepad2, Gift, Heart, ArrowRight, Play, Volume2, VolumeX } from 'lucide-react';
+import { Users, Music, Camera, Gamepad2, Gift, Heart, Play } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function LandingPage({ eventInfo, onNavigate }) {
@@ -47,11 +47,6 @@ export default function LandingPage({ eventInfo, onNavigate }) {
 
   const handleVideoEnded = () => {
     setIntroStage(3); // Reveal landing page after video
-  };
-
-  const handleGetStarted = () => {
-    sound.playClick();
-    onNavigate('public_register');
   };
 
   const handleLogin = () => {
@@ -176,10 +171,7 @@ export default function LandingPage({ eventInfo, onNavigate }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 60 }}>
-        <button onClick={handleGetStarted} className="btn-primary" style={{ padding: '16px 40px', fontSize: 20 }}>
-          Grab Your E-Pass Now <ArrowRight style={{ display: 'inline', marginLeft: 8 }} />
-        </button>
-        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '10px 24px', fontSize: 16, background: 'transparent', border: '2px dashed var(--black-ink)', color: 'var(--black-ink)' }}>
+        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '12px 28px', fontSize: 16, background: 'var(--card-bg)', border: '2px solid var(--black-ink)', color: 'var(--black-ink)', boxShadow: '3px 3px 0 var(--black-ink)' }}>
           Already have a pass? Login here
         </button>
       </div>
