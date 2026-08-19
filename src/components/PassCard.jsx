@@ -13,12 +13,12 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
   useEffect(() => {
     if (!attendee?.code) return;
     
-    // Generate high-resolution, high-contrast QR code for instant scanning
-    const qrData = createTicketQRPayload(attendee);
+    // Generate clean, high-contrast, crisp QR code with bold modules
+    const qrData = attendee.code; // Clean ticket code for optimal scannability & aesthetic square modules
     generateQRCode(qrData, {
       width: 400,
       margin: 1,
-      errorCorrectionLevel: 'H',
+      errorCorrectionLevel: 'M',
       darkColor: '#000000',
       lightColor: '#FFFFFF',
     }).then(url => {
@@ -123,7 +123,7 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
           gap: 6,
           boxShadow: '0 4px 12px rgba(0,0,0,0.7), 0 0 10px rgba(251, 191, 36, 0.25)',
           pointerEvents: 'none',
-          maxWidth: '45%',
+          maxWidth: '50%',
           zIndex: 5
         }}>
           <span style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>👑</span>
@@ -154,69 +154,33 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
           </span>
         </div>
 
-        {/* ─── ATTENDEE NAME SUB-HEADER ON RIGHT STUB ─── */}
-        <div style={{
-          position: 'absolute',
-          left: '77.5%',
-          top: '29.2%',
-          width: '20.8%',
-          textAlign: 'center',
-          pointerEvents: 'none',
-          zIndex: 5
-        }}>
-          <div style={{
-            color: '#38BDF8',
-            fontSize: 'clamp(7px, 0.95vw, 12px)',
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 0 8px rgba(56, 189, 248, 0.6)',
-            lineHeight: 1.1,
-            padding: '0 2px'
-          }}>
-            {attendee.name}
-          </div>
-        </div>
-
         {/* ─── DYNAMIC QR CODE OVERLAY (Inside Neon QR Box) ─── */}
         <div style={{ 
           position: 'absolute', 
-          left: '79.2%', 
-          top: '33.8%', 
-          width: '17.4%', 
-          height: '26.1%', 
-          background: 'transparent',
+          left: '80.0%', 
+          top: '34.2%', 
+          width: '15.8%', 
+          height: '23.7%', 
+          background: '#FFFFFF',
+          borderRadius: 10,
+          padding: '3%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.8)',
           pointerEvents: 'none',
-          zIndex: 5
+          zIndex: 5,
+          boxSizing: 'border-box'
         }}>
-          <div style={{ 
-            background: '#FFFFFF',
-            padding: '4%',
-            borderRadius: 10,
-            width: '88%',
-            aspectRatio: '1 / 1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.9), 0 0 10px rgba(56, 189, 248, 0.4)',
-            overflow: 'hidden'
-          }}>
-            {qrUrl ? (
-              <img 
-                src={qrUrl} 
-                style={{ width: '100%', height: '100%', display: 'block', imageRendering: 'pixelated' }} 
-                alt={`Gate QR Code for ${attendee.code}`} 
-              />
-            ) : (
-              <div style={{ fontSize: 9, color: '#6B7280', textAlign: 'center' }}>Generating…</div>
-            )}
-          </div>
+          {qrUrl ? (
+            <img 
+              src={qrUrl} 
+              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }} 
+              alt={`Gate QR Code for ${attendee.code}`} 
+            />
+          ) : (
+            <div style={{ fontSize: 9, color: '#6B7280', textAlign: 'center' }}>Generating…</div>
+          )}
         </div>
 
         {/* ─── DYNAMIC TICKET CODE OVERLAY (Inside Password Pill Box) ─── */}
@@ -235,7 +199,8 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
           pointerEvents: 'none',
           boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(236, 72, 153, 0.3)',
           zIndex: 5,
-          padding: '0 4px'
+          padding: '0 4px',
+          boxSizing: 'border-box'
         }}>
           <span style={{ 
             color: '#FACC15', 
