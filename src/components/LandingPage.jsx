@@ -162,16 +162,43 @@ export default function LandingPage({ eventInfo, onNavigate }) {
 
       </div>
 
-      {/* Coming Soon & Action */}
-      <div style={{ textAlign: 'center', marginBottom: 50 }}>
-        <h2 className="marker-font" style={{ fontSize: 50, color: 'var(--purple-main)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 10 }}>COMING SOON</h2>
-        <p style={{ fontSize: 16, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '2px solid var(--black-ink)', display: 'inline-block', paddingBottom: 4 }}>
+      {/* Event Details & Action */}
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{
+          display: 'inline-flex',
+          gap: 16,
+          background: 'white',
+          border: '2px solid var(--black-ink)',
+          boxShadow: '4px 4px 0 var(--black-ink)',
+          padding: '10px 24px',
+          borderRadius: 12,
+          marginBottom: 16,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--purple-main)', fontSize: 16 }}>
+            📅 20th AUGUST 2026
+          </span>
+          <span style={{ color: '#9CA3AF' }}>•</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--black-ink)', fontSize: 16 }}>
+            ⏰ 11:00 AM TO 3:00 PM
+          </span>
+          <span style={{ color: '#9CA3AF' }}>•</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#EC4899', fontSize: 16 }}>
+            📍 REWIND THE DISC
+          </span>
+        </div>
+        <p style={{ fontSize: 16, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', display: 'block' }}>
           PREPARE YOUR <span style={{color:'var(--purple-main)'}}>BEST OUTFIT</span> & CRAZIEST ENERGY!
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 60 }}>
-        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '12px 28px', fontSize: 16, background: 'var(--card-bg)', border: '2px solid var(--black-ink)', color: 'var(--black-ink)', boxShadow: '3px 3px 0 var(--black-ink)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 16, marginBottom: 60 }}>
+        <button onClick={() => { sound.playClick(); onNavigate('public_register'); }} className="btn-primary" style={{ padding: '14px 32px', fontSize: 16, fontWeight: 800 }}>
+          🎟️ Get Your Pass (₹350)
+        </button>
+        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '14px 28px', fontSize: 16, background: 'var(--card-bg)', border: '2px solid var(--black-ink)', color: 'var(--black-ink)', boxShadow: '3px 3px 0 var(--black-ink)' }}>
           Already have a pass? Login here
         </button>
       </div>

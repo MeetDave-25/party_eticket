@@ -6,13 +6,13 @@ import QRCode from 'qrcode';
 export async function generateQRCode(text, options = {}) {
   try {
     return await QRCode.toDataURL(text, {
-      width: options.width || 320,
-      margin: options.margin || 2,
+      width: options.width || 400,
+      margin: options.margin !== undefined ? options.margin : 1,
       color: {
         dark: options.darkColor || '#000000',
         light: options.lightColor || '#FFFFFF',
       },
-      errorCorrectionLevel: 'M',
+      errorCorrectionLevel: options.errorCorrectionLevel || 'H',
     });
   } catch (err) {
     console.error('QR code generation failed:', err);
@@ -22,17 +22,18 @@ export async function generateQRCode(text, options = {}) {
 
 /**
  * Creates a structured string payload for the QR code.
- * We include ticket code, id, name, and an authenticity signature.
+ * We include ticketCode, code, id, name, and timestamp.
  */
 export function createTicketQRPayload(attendee) {
+  if (!attendee) return '';
   const payload = {
-    t: 'PASSGUARD',
-    id: attendee.id,
+    t: 'VASTEGUNA_2026',
+    ticketCode: attendee.code,
     c: attendee.code,
+    id: attendee.id,
     n: attendee.name,
-    e: attendee.email,
-    r: attendee.tier,
-    s: attendee.seat || 'GENERAL',
+    e: attendee.email || '',
+    r: attendee.tier || 'GENERAL',
     ts: attendee.createdAt || new Date().toISOString()
   };
   return JSON.stringify(payload);
@@ -48,19 +49,44 @@ export function parseScannedTicketCode(scannedText) {
   // Case 1: Try JSON format payload
   try {
     const data = JSON.parse(trimmed);
-    if (data && (data.c || data.code || data.id)) {
-      return {
-        ticketCode: (data.c || data.code || data.id).toString().toUpperCase().trim(),
-        name: data.n || data.name,
-        tier: data.r || data.tier,
-        payload: data
-      };
+    if (data && typeof data === 'object') {
+      const code = data.ticketCode || data.code || data.c || data.id;
+      if (code) {
+        return {
+          ticketCode: code.toString().toUpperCase().trim(),
+          name: data.n || data.name || null,
+          tier: data.r || data.tier || null,
+          payload: data
+        };
+      }
     }
   } catch (e) {
-    // Not a JSON string, proceed to raw string checking
+    // Not a JSON string, proceed to next format
   }
 
-  // Case 2: Plain text ticket code like "PASS-7K9A-2026" or "PG-12345"
+  // Case 2: URL containing code or ticket query param or hash param
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    try {
+      const url = new URL(trimmed);
+      const codeParam = url.searchParams.get('code') || 
+                        url.searchParams.get('ticket') || 
+                        url.searchParams.get('ticketCode') || 
+                        url.searchParams.get('pass');
+      if (codeParam) {
+        return { ticketCode: codeParam.toUpperCase().trim(), name: null, tier: null, payload: null };
+      }
+      if (url.hash) {
+        const hashQuery = url.hash.includes('?') ? url.hash.split('?')[1] : url.hash.replace('#', '');
+        const hashParams = new URLSearchParams(hashQuery);
+        const hCode = hashParams.get('code') || hashParams.get('ticket');
+        if (hCode) {
+          return { ticketCode: hCode.toUpperCase().trim(), name: null, tier: null, payload: null };
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Case 3: Plain text ticket code like "PASS-GEN-8421" or "PG-12345"
   return {
     ticketCode: trimmed.toUpperCase(),
     name: null,

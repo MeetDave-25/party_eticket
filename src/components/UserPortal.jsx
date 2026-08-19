@@ -70,7 +70,7 @@ export default function UserPortal({ eventInfo, onLogout, onNavigate }) {
       {/* Header */}
       <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40, flexWrap: 'wrap', gap: 20 }}>
         <div>
-          <h2 className="marker-font" style={{ fontSize: 32, color: 'var(--purple-main)', lineHeight: 1, transform: 'rotate(-2deg)' }}>VASTEGUNA HUIYAA</h2>
+          <h2 className="marker-font" style={{ fontSize: 32, color: 'var(--purple-main)', lineHeight: 1, transform: 'rotate(-2deg)' }}>VASTEGUNA HAUIYAA</h2>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--black-ink)', background: 'var(--yellow-marker)', display: 'inline-block', padding: '2px 8px', transform: 'rotate(1deg)' }}>E-PASS PORTAL</p>
         </div>
 
@@ -136,7 +136,7 @@ export default function UserPortal({ eventInfo, onLogout, onNavigate }) {
                 <div style={{ background: 'var(--yellow-marker)', color: 'var(--black-ink)', padding: '6px', borderRadius: 8, height: 'fit-content' }}><MapPin size={18} /></div>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 15 }}>Venue Announced!</p>
-                  <p style={{ fontSize: 14, color: '#4B5563', marginTop: 2 }}>We're partying at the <strong>Main Campus Ground</strong>. Follow the neon signs from the north gate.</p>
+                  <p style={{ fontSize: 14, color: '#4B5563', marginTop: 2 }}>We're partying at <strong>Rewind The Disc</strong> on <strong>20th August 2026 (11:00 AM - 3:00 PM)</strong>.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 12 }}>

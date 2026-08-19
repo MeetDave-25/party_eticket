@@ -9,13 +9,15 @@ import AdminPortal from './components/AdminPortal';
 import PublicRegistration from './components/PublicRegistration';
 
 const EVENT_INFO = {
-  name: 'VASTEGUNA HUIYAA',
-  subtitle: 'FRESHERS EDITION',
-  date: 'Coming Soon',
-  time: 'Prepare Your Best Outfit',
-  venue: 'Main Campus Ground',
+  name: 'VASTEGUNA HAUIYAA',
+  subtitle: 'FRESHERS PARTY 2026',
+  date: '20th August 2026',
+  time: '11:00 AM to 3:00 PM',
+  venue: 'Rewind The Disc',
   organizers: 'Dhawan Satani & Jadav Dashrath',
   contact: '9714509181, 9624487630',
+  sponsors: 'Akash Technolabs, Sparsh Divine Art Studio, Arham Education',
+  managedBy: 'AIRA (Innovation • Research • Excellence)',
 };
 
 export default function App() {
