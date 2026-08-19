@@ -6,7 +6,7 @@ import { sound } from '../services/audio';
 import { parseScannedTicketCode } from '../services/qrcode';
 import {
   Scan, Camera, Upload, Keyboard, CheckCircle2, AlertTriangle,
-  XCircle, ArrowRight, Play, Square, SwitchCamera, CornerUpLeft, Loader
+  XCircle, ArrowRight, Play, Square, SwitchCamera, CornerUpLeft, Loader, X
 } from 'lucide-react';
 
 export default function Scanner({ initialCode = null, onClearInitialCode }) {
@@ -18,11 +18,19 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
   const [cameras, setCameras] = useState([]);
   const [result, setResult] = useState(null);
   const [verifying, setVerifying] = useState(false);
-  const [lastScanTime, setLastScanTime] = useState(0);
+  const [resetting, setResetting] = useState(false);
+
   const html5QrRef = useRef(null);
+  const isModalOpenRef = useRef(false);
+  const verifyingRef = useRef(false);
+  const lastScanTimeRef = useRef(0);
+  const lastScannedCodeRef = useRef('');
 
   useEffect(() => {
-    if (initialCode) { handleVerify(initialCode); if (onClearInitialCode) onClearInitialCode(); }
+    if (initialCode) {
+      handleVerify(initialCode);
+      if (onClearInitialCode) onClearInitialCode();
+    }
   }, [initialCode]);
 
   useEffect(() => {
@@ -42,6 +50,17 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
     return () => stopCamera();
   }, [scanMode, activeCameraId]);
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isModalOpenRef.current) {
+        closeModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const startCamera = async (camId = activeCameraId) => {
     setCameraError(null);
     try {
@@ -51,11 +70,23 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
         camId || (cameras.length ? cameras[0].id : { facingMode: 'environment' }),
         { fps: 15, qrbox: { width: 240, height: 240 }, aspectRatio: 1 },
         (text) => {
-          const now = Date.now();
-          if (now - lastScanTime < 2500) return;
-          setLastScanTime(now);
+          // If modal is active or verification in progress, ignore incoming frames
+          if (isModalOpenRef.current || verifyingRef.current) return;
+
           const parsed = parseScannedTicketCode(text);
-          if (parsed?.ticketCode) handleVerify(parsed.ticketCode);
+          if (!parsed?.ticketCode) return;
+
+          const now = Date.now();
+          const cleanCode = parsed.ticketCode.trim().toUpperCase();
+
+          // Prevent repeated rapid scans of the same code within 4 seconds
+          if (cleanCode === lastScannedCodeRef.current && (now - lastScanTimeRef.current < 4000)) {
+            return;
+          }
+
+          lastScanTimeRef.current = now;
+          lastScannedCodeRef.current = cleanCode;
+          handleVerify(cleanCode);
         },
         () => {}
       );
@@ -73,12 +104,35 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
     }
   };
 
+  const closeModal = () => {
+    sound.playClick();
+    setResult(null);
+    isModalOpenRef.current = false;
+    verifyingRef.current = false;
+    // Set grace period so the same code is not immediately re-scanned
+    lastScanTimeRef.current = Date.now() + 1500;
+    
+    // Resume camera feed if it was paused
+    if (html5QrRef.current?.isScanning) {
+      try { html5QrRef.current.resume(); } catch {}
+    }
+  };
+
   const handleVerify = async (code) => {
-    if (!code || verifying) return;
+    if (!code || verifyingRef.current) return;
+    verifyingRef.current = true;
     setVerifying(true);
+
+    // Pause camera scan while verifying/showing modal
+    if (html5QrRef.current?.isScanning) {
+      try { html5QrRef.current.pause(true); } catch {}
+    }
+
     try {
       const res = await storage.verifyAndCheckInTicket(code.trim().toUpperCase(), 'Main Gate');
       setResult(res);
+      isModalOpenRef.current = true;
+
       if (res.status === 'SUCCESS') {
         sound.playSuccess();
         try { confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#10B981', '#FBBF24', '#6B21A8', '#EC4899'] }); } catch {}
@@ -89,9 +143,26 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
       }
     } catch (err) {
       setResult({ status: 'INVALID', ticketCode: code, message: `Server error: ${err.message}` });
+      isModalOpenRef.current = true;
       sound.playError();
     } finally {
       setVerifying(false);
+      verifyingRef.current = false;
+    }
+  };
+
+  const handleResetCheckIn = async (attendeeId) => {
+    if (!attendeeId || resetting) return;
+    setResetting(true);
+    sound.playClick();
+    try {
+      await storage.undoCheckIn(attendeeId);
+      sound.playSuccess();
+      closeModal();
+    } catch (err) {
+      alert(`Failed to reset pass: ${err.message}`);
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -106,6 +177,7 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
       h.clear();
     } catch {
       setResult({ status: 'INVALID', ticketCode: 'FILE', message: 'Could not read a QR code from this image. Try a clearer photo.' });
+      isModalOpenRef.current = true;
       sound.playError();
     }
   };
@@ -205,7 +277,7 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
                 <p style={{ fontSize: 15, color: '#4B5563', marginBottom: 24, fontWeight: 600, textAlign: 'center' }}>Enter the ticket code printed on the pass</p>
                 <form onSubmit={(e) => { e.preventDefault(); handleVerify(manualCode.trim()); setManualCode(''); }}>
                   <input className="pg-input" style={{ fontSize: 18, fontFamily: 'var(--font-mono)', textAlign: 'center', textTransform: 'uppercase', marginBottom: 20 }}
-                    value={manualCode} onChange={e => setManualCode(e.target.value.toUpperCase())} placeholder="PASS-VIP-9021" autoFocus />
+                    value={manualCode} onChange={e => setManualCode(e.target.value.toUpperCase())} placeholder="PASS-GEN-8421" autoFocus />
                   <button type="submit" disabled={verifying} className="btn-success" style={{ width: '100%', padding: '16px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                     {verifying ? <><Loader size={20} className="animate-spin" /> Verifying…</> : <><CheckCircle2 size={20} /> Verify Ticket</>}
                   </button>
@@ -240,16 +312,54 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
       {result && (() => {
         const cfg = STATUS_CONFIG[result.status] || STATUS_CONFIG.INVALID;
         return (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <div className="paper-card" style={{ width: '100%', maxWidth: 440, background: 'white', padding: 0, overflow: 'hidden', border: `4px solid ${cfg.border}` }}>
+          <div 
+            onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+            style={{ 
+              position: 'fixed', 
+              inset: 0, 
+              zIndex: 300, 
+              background: 'rgba(0,0,0,0.65)', 
+              backdropFilter: 'blur(8px)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              padding: 24 
+            }}
+          >
+            <div className="paper-card" style={{ width: '100%', maxWidth: 440, background: 'white', padding: 0, overflow: 'hidden', border: `4px solid ${cfg.border}`, position: 'relative' }}>
               
-              <div style={{ padding: '40px 32px 32px', textAlign: 'center', background: cfg.bg, borderBottom: `2px dashed ${cfg.border}` }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, background: 'white', border: `3px solid ${cfg.border}`, borderRadius: '50%', marginBottom: 20 }}>
+              {/* Close Button Top-Right */}
+              <button 
+                onClick={closeModal}
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'rgba(0,0,0,0.1)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--black-ink)',
+                  zIndex: 10,
+                  transition: 'background 0.2s'
+                }}
+                title="Close"
+              >
+                <X size={20} />
+              </button>
+
+              <div style={{ padding: '36px 32px 28px', textAlign: 'center', background: cfg.bg, borderBottom: `2px dashed ${cfg.border}` }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 76, height: 76, background: 'white', border: `3px solid ${cfg.border}`, borderRadius: '50%', marginBottom: 16 }}>
                   {cfg.icon}
                 </div>
-                <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 800, color: cfg.color, letterSpacing: '0.1em', marginBottom: 8 }}>{cfg.sub}</div>
-                <h2 className="marker-font" style={{ fontSize: 36, color: 'var(--black-ink)', lineHeight: 1 }}>{cfg.label}</h2>
-                {result.attendee?.name && <p style={{ fontSize: 18, color: 'var(--black-ink)', fontWeight: 700, marginTop: 12 }}>{result.attendee.name}</p>}
+                <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 800, color: cfg.color, letterSpacing: '0.1em', marginBottom: 6 }}>{cfg.sub}</div>
+                <h2 className="marker-font" style={{ fontSize: 34, color: 'var(--black-ink)', lineHeight: 1 }}>{cfg.label}</h2>
+                {result.attendee?.name && <p style={{ fontSize: 18, color: 'var(--black-ink)', fontWeight: 700, marginTop: 10 }}>{result.attendee.name}</p>}
               </div>
 
               <div style={{ padding: '24px 32px' }}>
@@ -272,14 +382,21 @@ export default function Scanner({ initialCode = null, onClearInitialCode }) {
                 
                 <div style={{ display: 'flex', gap: 12 }}>
                   {result.status === 'DUPLICATE' && (
-                    <button className="btn-secondary" style={{ flex: '0 0 auto', padding: '14px 20px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
-                      onClick={async () => { await storage.undoCheckIn(result.attendee?.id); setResult(null); }}>
-                      <CornerUpLeft size={18} /> Reset
+                    <button 
+                      disabled={resetting}
+                      className="btn-secondary" 
+                      style={{ flex: '0 0 auto', padding: '14px 20px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
+                      onClick={() => handleResetCheckIn(result.attendee?.id)}
+                    >
+                      <CornerUpLeft size={18} /> {resetting ? 'Resetting…' : 'Reset Check-In'}
                     </button>
                   )}
-                  <button className="btn-primary" style={{ flex: 1, padding: '14px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                    onClick={() => { sound.playClick(); setResult(null); }}>
-                    Scan Next <ArrowRight size={20} />
+                  <button 
+                    className="btn-primary" 
+                    style={{ flex: 1, padding: '14px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    onClick={closeModal}
+                  >
+                    Scan Next Pass <ArrowRight size={20} />
                   </button>
                 </div>
               </div>

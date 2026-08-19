@@ -34,6 +34,13 @@ export default function AdminPortal({ eventInfo, onLogout, initialScanCode, admi
     };
   }, []);
 
+  useEffect(() => {
+    if (initialScanCode) {
+      setScannerCode(initialScanCode);
+      setTab('scanner');
+    }
+  }, [initialScanCode]);
+
   const pendingApprovalsCount = attendees.filter(a => a.status === 'PENDING').length;
 
   const ALL_NAV_ITEMS = [
