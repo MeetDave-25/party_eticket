@@ -157,25 +157,25 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
         {/* ─── DYNAMIC QR CODE OVERLAY (Inside Neon QR Box) ─── */}
         <div style={{ 
           position: 'absolute', 
-          left: '80.0%', 
-          top: '34.2%', 
-          width: '15.8%', 
-          height: '23.7%', 
+          left: '79.5%', 
+          top: '33.5%', 
+          width: '16.8%', 
+          height: '25.3%', 
           background: '#FFFFFF',
-          borderRadius: 10,
-          padding: '3%',
+          borderRadius: 14,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.8)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.85)',
           pointerEvents: 'none',
           zIndex: 5,
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          padding: '2%'
         }}>
           {qrUrl ? (
             <img 
               src={qrUrl} 
-              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }} 
+              style={{ width: '94%', height: '94%', display: 'block', objectFit: 'contain' }} 
               alt={`Gate QR Code for ${attendee.code}`} 
             />
           ) : (
@@ -186,34 +186,33 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
         {/* ─── DYNAMIC TICKET CODE OVERLAY (Inside Password Pill Box) ─── */}
         <div style={{ 
           position: 'absolute', 
-          left: '78.8%', 
-          top: '63.8%', 
-          width: '18.4%', 
-          height: '6.8%', 
+          left: '78.5%', 
+          top: '63.5%', 
+          width: '19.0%', 
+          height: '7.2%', 
           background: '#0B0F19',
-          border: '1.5px solid rgba(236, 72, 153, 0.7)',
+          border: '1.5px solid rgba(236, 72, 153, 0.8)',
           borderRadius: 8,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           pointerEvents: 'none',
-          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(236, 72, 153, 0.3)',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(236, 72, 153, 0.4)',
           zIndex: 5,
-          padding: '0 4px',
+          padding: '0 2px',
           boxSizing: 'border-box'
         }}>
           <span style={{ 
             color: '#FACC15', 
-            fontSize: 'clamp(8px, 1.1vw, 13px)', 
+            fontSize: 'clamp(7px, 1.0vw, 12px)', 
             fontWeight: 900,
             fontFamily: 'var(--font-mono, monospace)',
-            letterSpacing: '0.06em',
+            letterSpacing: '0.02em',
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 0 6px rgba(250, 204, 21, 0.4)',
-            lineHeight: 1
+            textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 0 6px rgba(250, 204, 21, 0.5)',
+            lineHeight: 1,
+            textAlign: 'center'
           }}>
             {attendee.code || 'VASTEGUNA2026'}
           </span>
