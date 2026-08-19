@@ -194,11 +194,8 @@ export default function LandingPage({ eventInfo, onNavigate }) {
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 16, marginBottom: 60 }}>
-        <button onClick={() => { sound.playClick(); onNavigate('public_register'); }} className="btn-primary" style={{ padding: '14px 32px', fontSize: 16, fontWeight: 800 }}>
-          🎟️ Get Your Pass (₹350)
-        </button>
-        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '14px 28px', fontSize: 16, background: 'var(--card-bg)', border: '2px solid var(--black-ink)', color: 'var(--black-ink)', boxShadow: '3px 3px 0 var(--black-ink)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 60 }}>
+        <button onClick={handleLogin} className="btn-secondary" style={{ padding: '12px 28px', fontSize: 16, background: 'var(--card-bg)', border: '2px solid var(--black-ink)', color: 'var(--black-ink)', boxShadow: '3px 3px 0 var(--black-ink)' }}>
           Already have a pass? Login here
         </button>
       </div>
