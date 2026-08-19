@@ -2,51 +2,67 @@ import React, { useEffect, useState } from 'react';
 import { storage } from '../services/storage';
 import { sound } from '../services/audio';
 import PassCard from './PassCard';
-import { LogOut, Calendar, MapPin, Bell, UserPlus, ChevronDown, Check } from 'lucide-react';
+import { LogOut, Calendar, MapPin, Bell, User } from 'lucide-react';
 
-export default function UserPortal({ eventInfo, onLogout }) {
-  const [activeUser, setActiveUser] = useState(null);
-  const [attendees, setAttendees] = useState([]);
-  const [showSwitcher, setShowSwitcher] = useState(false);
-  
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newPass, setNewPass] = useState({ name: '', email: '', tier: 'GENERAL', company: '' });
+export default function UserPortal({ eventInfo, onLogout, onNavigate }) {
+  const [activeUser, setActiveUser] = useState(() => storage.getActiveUser());
+  const [loading, setLoading] = useState(!activeUser);
 
-  const load = async () => {
-    const list = await storage.getAttendees();
-    setAttendees(list);
+  const refreshUserData = async () => {
     const cur = storage.getActiveUser();
-    if (cur) {
-      const fresh = list.find(a => a.id === cur.id || a.code === cur.code);
-      setActiveUser(fresh || cur);
-    } else if (list.length) setActiveUser(list[0]);
+    if (!cur) {
+      if (onNavigate) onNavigate('auth');
+      else if (onLogout) onLogout();
+      return;
+    }
+
+    try {
+      // Look up fresh data ONLY for the current active user
+      const fresh = await storage.findAttendeeByIdentifier(cur.id || cur.code);
+      if (fresh) {
+        storage.setActiveUser(fresh);
+        setActiveUser(fresh);
+      } else {
+        // If not found (e.g. deleted), log out
+        storage.clearActiveUser();
+        if (onNavigate) onNavigate('auth');
+        else if (onLogout) onLogout();
+      }
+    } catch (err) {
+      console.warn('Failed to refresh attendee data:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    load();
-    window.addEventListener('passguard_data_change', load);
-    return () => window.removeEventListener('passguard_data_change', load);
+    const cur = storage.getActiveUser();
+    if (!cur) {
+      if (onNavigate) onNavigate('auth');
+      else if (onLogout) onLogout();
+      return;
+    }
+    setActiveUser(cur);
+    setLoading(false);
+
+    refreshUserData();
+    window.addEventListener('passguard_data_change', refreshUserData);
+    return () => window.removeEventListener('passguard_data_change', refreshUserData);
   }, []);
 
-  const handleSwitchUser = (att) => {
-    sound.playClick();
-    storage.setActiveUser(att);
-    setActiveUser(att);
-    setShowSwitcher(false);
-  };
-
-  const handleAddPass = async (e) => {
-    e.preventDefault();
-    if (!newPass.name.trim()) return;
-    const created = await storage.addAttendee({ ...newPass, seat: `${newPass.tier} Access Area` });
-    sound.playSuccess();
-    storage.setActiveUser(created);
-    setActiveUser(created);
-    setShowAddModal(false);
-    setNewPass({ name: '', email: '', tier: 'GENERAL', company: '' });
-  };
-
-  if (!activeUser) return <div className="doodle-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  if (!activeUser || loading) {
+    return (
+      <div className="doodle-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div className="paper-card" style={{ padding: '32px', textAlign: 'center', maxWidth: 400 }}>
+          <h3 className="marker-font" style={{ fontSize: 24, color: 'var(--purple-main)', marginBottom: 12 }}>Access Required</h3>
+          <p style={{ fontSize: 14, color: '#4B5563', marginBottom: 20 }}>Please log in to view your E-Pass ticket.</p>
+          <button onClick={() => onNavigate ? onNavigate('auth') : onLogout()} className="btn-primary" style={{ width: '100%', padding: '12px' }}>
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="doodle-bg" style={{ minHeight: '100vh', padding: '40px 20px' }}>
@@ -57,28 +73,35 @@ export default function UserPortal({ eventInfo, onLogout }) {
           <h2 className="marker-font" style={{ fontSize: 32, color: 'var(--purple-main)', lineHeight: 1, transform: 'rotate(-2deg)' }}>VASTEGUNA HUIYAA</h2>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--black-ink)', background: 'var(--yellow-marker)', display: 'inline-block', padding: '2px 8px', transform: 'rotate(1deg)' }}>E-PASS PORTAL</p>
         </div>
+
+        {/* User Identity Pill & Logout */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* User Switcher Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowSwitcher(!showSwitcher)} className="btn-secondary" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              {activeUser.name} <ChevronDown size={14} />
-            </button>
-            {showSwitcher && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: 'white', border: '2px solid var(--black-ink)', borderRadius: 8, width: 220, zIndex: 100, boxShadow: '4px 4px 0 rgba(0,0,0,0.1)' }}>
-                {attendees.map(a => (
-                  <button key={a.id} onClick={() => handleSwitchUser(a)} style={{ width: '100%', padding: '12px 16px', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px dashed #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', fontWeight: 600, color: 'var(--black-ink)' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
-                    {a.id === activeUser.id && <Check size={14} color="var(--purple-main)" />}
-                  </button>
-                ))}
-                <button onClick={() => { setShowAddModal(true); setShowSwitcher(false); }} style={{ width: '100%', padding: '12px 16px', textAlign: 'left', background: 'var(--purple-main)', border: 'none', color: 'white', fontWeight: 700, cursor: 'pointer', borderBottomLeftRadius: 6, borderBottomRightRadius: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <UserPlus size={14} /> Add Another Pass
-                </button>
-              </div>
-            )}
+          <div style={{
+            background: 'white',
+            border: '2px solid var(--black-ink)',
+            borderRadius: 8,
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            color: 'var(--black-ink)',
+            boxShadow: '2px 2px 0 var(--black-ink)'
+          }}>
+            <User size={15} color="var(--purple-main)" />
+            <span style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activeUser.name}
+            </span>
           </div>
-          <button onClick={() => { sound.playClick(); onLogout(); }} className="btn-secondary" style={{ padding: '8px', color: '#EF4444' }} title="Log Out">
-            <LogOut size={16} />
+
+          <button 
+            onClick={() => { sound.playClick(); onLogout(); }} 
+            className="btn-secondary" 
+            style={{ padding: '8px 14px', color: '#EF4444', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }} 
+            title="Log Out"
+          >
+            <LogOut size={16} /> Logout
           </button>
         </div>
       </div>
@@ -136,23 +159,6 @@ export default function UserPortal({ eventInfo, onLogout }) {
 
         </div>
       </div>
-
-      {/* Add Pass Modal */}
-      {showAddModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div className="paper-card" style={{ width: '100%', maxWidth: 400, padding: 32 }}>
-            <h3 className="marker-font" style={{ fontSize: 28, color: 'var(--purple-main)', marginBottom: 20 }}>Add Another Pass</h3>
-            <form onSubmit={handleAddPass} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <input className="pg-input" required value={newPass.name} onChange={e => setNewPass({...newPass, name: e.target.value})} placeholder="Full Name" autoFocus />
-              <input className="pg-input" type="email" required value={newPass.email} onChange={e => setNewPass({...newPass, email: e.target.value})} placeholder="Email" />
-              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary" style={{ flex: 1, padding: 12 }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ flex: 1, padding: 12 }}>Add Pass</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );

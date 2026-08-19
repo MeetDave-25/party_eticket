@@ -22,6 +22,9 @@ export default function App() {
   const [page, setPage] = useState(() => {
     const hash = window.location.hash.replace('#', '');
     if (['landing', 'auth', 'user', 'admin', 'public_register'].includes(hash)) {
+      if (hash === 'user' && !storage.getActiveUser()) {
+        return 'auth';
+      }
       return hash;
     }
     return 'landing';
@@ -46,18 +49,29 @@ export default function App() {
 
     const handlePopState = (event) => {
       if (event.state && event.state.page) {
-        setPage(event.state.page);
+        let dest = event.state.page;
+        if (dest === 'user' && !storage.getActiveUser()) {
+          dest = 'auth';
+        }
+        if (dest === 'admin' && !event.state.adminRole && !adminRole) {
+          dest = 'auth';
+        }
+        setPage(dest);
         if (event.state.opts) setAuthOpts(event.state.opts);
         if (event.state.adminRole) setAdminRole(event.state.adminRole);
       } else {
         const hash = window.location.hash.replace('#', '');
-        setPage(hash || 'landing');
+        let dest = hash || 'landing';
+        if (dest === 'user' && !storage.getActiveUser()) {
+          dest = 'auth';
+        }
+        setPage(dest);
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [adminRole]);
 
   const toggleTheme = () => {
     sound.playClick();
@@ -72,9 +86,17 @@ export default function App() {
   };
 
   const navigate = (dest, opts = {}) => {
+    let target = dest;
+    if (target === 'user' && !storage.getActiveUser()) {
+      target = 'auth';
+    }
+    if (target === 'admin' && !adminRole) {
+      target = 'auth';
+      opts = { ...opts, defaultTab: 'admin' };
+    }
     setAuthOpts(opts);
-    setPage(dest);
-    window.history.pushState({ page: dest, opts, adminRole }, '', `#${dest}`);
+    setPage(target);
+    window.history.pushState({ page: target, opts, adminRole }, '', `#${target}`);
     window.scrollTo(0, 0);
   };
 
@@ -83,15 +105,6 @@ export default function App() {
       window.history.back();
     } else {
       navigate('landing');
-    }
-  };
-
-  const quickLogin = (attendeeId) => {
-    const attendees = storage.getAttendees();
-    const found = attendees.find(a => a.id === attendeeId);
-    if (found) {
-      storage.setActiveUser(found);
-      navigate('user');
     }
   };
 
@@ -126,7 +139,6 @@ export default function App() {
       {page === 'landing' && (
         <LandingPage
           onNavigate={navigate}
-          onQuickLogin={quickLogin}
         />
       )}
 
@@ -151,6 +163,7 @@ export default function App() {
           eventInfo={EVENT_INFO}
           onLogout={handleLogout}
           onBack={goBack}
+          onNavigate={navigate}
           onSwitchToAdmin={switchToAdmin}
         />
       )}
