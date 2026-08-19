@@ -40,60 +40,86 @@ export default function PassCard({ attendee, eventInfo, showActions = true, onSi
       <div ref={containerRef} style={{ 
         width: '100%', 
         maxWidth: 800, 
-        aspectRatio: '1500 / 1000', // Approx landscape aspect ratio
+        aspectRatio: '1536 / 1024',
         background: '#000', 
         borderRadius: 16, 
         overflow: 'hidden', 
         position: 'relative', 
         boxShadow: '0 10px 25px rgba(0,0,0,0.5)' 
       }}>
-        <img src="/pass.jpeg" alt="Pass Background" crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src="/pass.jpeg" alt="Pass Background" crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         
-        {/* QR Code Overlay (Right side box) */}
+        {/* ─── NEON ENTRY BOX OVERLAY (Right stub) ─── */}
         <div style={{ 
           position: 'absolute', 
-          right: '5.2%', 
-          top: '30%', 
-          width: '21.5%', 
-          aspectRatio: '1/1', 
-          background: 'white',
-          padding: '2%',
-          borderRadius: 8
+          left: '76.6%', 
+          top: '28.6%', 
+          width: '21.0%', 
+          height: '35.8%', 
+          background: '#05070f',
+          borderRadius: 12,
+          padding: '2.5% 2%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}>
-          {qrUrl ? <img src={qrUrl} style={{ width: '100%', height: '100%', display: 'block' }} alt="QR Code" /> : null}
-        </div>
+          {/* 1. Attendee Name (Top) */}
+          <div style={{ 
+            width: '100%',
+            textAlign: 'center', 
+            color: '#38bdf8', 
+            fontSize: 'clamp(9px, 1.25vw, 15px)', 
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textShadow: '0 0 8px rgba(56, 189, 248, 0.5)',
+            lineHeight: 1.15
+          }}>
+            {attendee.name}
+          </div>
 
-        {/* Attendee Name overlay */}
-        <div style={{ 
-          position: 'absolute', 
-          right: '5.2%', 
-          top: '23%', 
-          width: '21.5%', 
-          textAlign: 'center', 
-          color: '#38bdf8', 
-          fontSize: 'clamp(12px, 1.8vw, 24px)', 
-          fontWeight: 800,
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          textShadow: '0 2px 4px rgba(0,0,0,0.8)'
-        }}>
-          {attendee.name}
-        </div>
+          {/* 2. QR Code (Center - completely clean & unobstructed) */}
+          <div style={{ 
+            background: 'white',
+            padding: '3%',
+            borderRadius: 8,
+            width: '68%',
+            aspectRatio: '1 / 1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
+            flexShrink: 0
+          }}>
+            {qrUrl ? (
+              <img 
+                src={qrUrl} 
+                style={{ width: '100%', height: '100%', display: 'block' }} 
+                alt="Gate QR Code" 
+              />
+            ) : null}
+          </div>
 
-        {/* Ticket Code overlay */}
-        <div style={{ 
-          position: 'absolute', 
-          right: '5.2%', 
-          top: '56%', 
-          width: '21.5%', 
-          textAlign: 'center', 
-          color: '#fff', 
-          fontSize: 'clamp(10px, 1.4vw, 18px)', 
-          fontWeight: 700,
-          fontFamily: 'var(--font-mono)',
-          textShadow: '0 2px 4px rgba(0,0,0,0.8)'
-        }}>
-          {attendee.code}
+          {/* 3. Ticket Code (Bottom) */}
+          <div style={{ 
+            width: '100%',
+            textAlign: 'center', 
+            color: '#FBBF24', 
+            fontSize: 'clamp(8px, 1.05vw, 13px)', 
+            fontWeight: 800,
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.06em',
+            textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+            lineHeight: 1.15
+          }}>
+            {attendee.code}
+          </div>
         </div>
       </div>
 

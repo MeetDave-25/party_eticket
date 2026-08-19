@@ -197,14 +197,60 @@ export default function LandingPage({ eventInfo, onNavigate }) {
       </div>
 
       {/* ─── Sponsor Section ─── */}
-      <div style={{ marginTop: 20, marginBottom: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
-        <div className="paper-card" style={{ padding: '20px 30px', transform: 'rotate(2deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 15, width: '100%', maxWidth: 350 }}>
-          <div className="tape top-center" style={{ width: 80, top: -12 }} />
-          <p className="marker-font" style={{ fontSize: 26, color: 'var(--purple-main)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Sponsored By</p>
-          <div style={{ padding: 10, background: 'white', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: '100%', transform: 'rotate(-1deg)' }}>
-            <img src="/sparsh.jpeg" alt="Sparsh Art Divine Studio" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 2 }} />
+      <div style={{ marginTop: 20, marginBottom: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10, width: '100%', maxWidth: 1000 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ display: 'inline-block', background: 'var(--yellow-marker)', color: 'var(--black-ink)', padding: '4px 16px', fontWeight: 800, transform: 'rotate(-2deg)', border: '2px solid var(--black-ink)', boxShadow: '3px 3px 0 var(--black-ink)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Official Partners
           </div>
-          <h3 style={{ fontSize: 22, fontWeight: 900, textAlign: 'center', color: 'var(--black-ink)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sparsh Art<br/>Divine Studio</h3>
+          <h2 className="marker-font" style={{ fontSize: 'clamp(32px, 6vw, 44px)', color: 'var(--purple-main)', marginTop: 8, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Sponsored By
+          </h2>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 30, width: '100%' }}>
+          
+          {/* Sponsor 1: Akash Technolabs */}
+          <div className="paper-card" style={{ padding: '20px', transform: 'rotate(-2deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%', maxWidth: 290 }}>
+            <div className="tape top-center" style={{ width: 70, top: -10 }} />
+            <div style={{ padding: '12px', background: 'white', borderRadius: 8, border: '1.5px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', width: '100%', height: 130, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/akash.jpeg" alt="Akash Technolabs" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--black-ink)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Akash Technolabs
+              </h3>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', margin: '4px 0 0' }}>IT Training & Internship</p>
+            </div>
+          </div>
+
+          {/* Sponsor 2: Sparsh Art Divine Studio */}
+          <div className="paper-card" style={{ padding: '20px', transform: 'rotate(1.5deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%', maxWidth: 290 }}>
+            <div className="tape top-center" style={{ width: 70, top: -10 }} />
+            <div style={{ padding: '12px', background: 'white', borderRadius: 8, border: '1.5px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', width: '100%', height: 130, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/sparsh.jpeg" alt="Sparsh Art Divine Studio" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--black-ink)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Sparsh Art<br/>Divine Studio
+              </h3>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', margin: '4px 0 0' }}>Divine Art Studio</p>
+            </div>
+          </div>
+
+          {/* Sponsor 3: Arham Education */}
+          <div className="paper-card" style={{ padding: '20px', transform: 'rotate(-1.5deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%', maxWidth: 290 }}>
+            <div className="tape top-center" style={{ width: 70, top: -10 }} />
+            <div style={{ padding: '12px', background: 'white', borderRadius: 8, border: '1.5px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', width: '100%', height: 130, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/arham.jpeg" alt="Arham Education" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--black-ink)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Arham Education
+              </h3>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', margin: '4px 0 0' }}>Where Career Rise...</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
